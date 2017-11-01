@@ -12,7 +12,7 @@ static void FailMem();
 void * NewMem(unsigned int size)
 {
     void * ptr;
-    int i;
+    unsigned int i;
 
     if (mem == NULL)
     {
@@ -42,7 +42,7 @@ void * NewMem(unsigned int size)
 
 void RemoveMem(void * ptr)
 {
-    int index, start;
+    unsigned int index, start;
 
     if (mem == NULL)
         return;
@@ -60,12 +60,13 @@ void RemoveMem(void * ptr)
     }
 
     free(mem->values[index]);
+    mem->values[index] = NULL;
     --(mem->count);
 }
 
 void EndMem()
 {
-    int i;
+    unsigned int i;
 
     if (mem == NULL)
         return;
@@ -75,12 +76,14 @@ void EndMem()
 
     free(mem->values);
     free(mem);
+
+    mem = NULL;
 }
 
 static void * PushMem(unsigned int size)
 {
     void * ptr;
-    int index;
+    unsigned int index;
 
     if (mem->count == mem->max)
         PlusMem();
@@ -106,7 +109,7 @@ static void PlusMem()
 {
     void ** temp;
     void ** old;
-    int index = 0, size, capacity, i;
+    unsigned int index = 0, size, capacity, i;
 
     size = mem->max;
 
@@ -125,7 +128,7 @@ static void PlusMem()
         FailMem();
 
     mem->values = temp;
-    mem->count = size + 1;
+    mem->count = size;
     mem->size = capacity;
     mem->max = (capacity << 1) / 3;
 

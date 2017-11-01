@@ -4,9 +4,9 @@
 typedef struct Memory
 {
     void ** values;
-    int count;
-    int size;
-    int max;
+    unsigned int count;
+    unsigned int size;
+    unsigned int max;
 } Memory;
 
 void * NewMem(unsigned int);
