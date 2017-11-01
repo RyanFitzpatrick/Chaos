@@ -1,0 +1,156 @@
+#include "Memory.h"
+#include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
+
+static Memory * mem = NULL;
+
+static void * PushMem(unsigned int);
+static void PlusMem();
+static void FailMem();
+
+void * NewMem(unsigned int size)
+{
+    void * ptr;
+    int i;
+
+    if (mem == NULL)
+    {
+        if ((mem = malloc(sizeof(Memory))) == NULL)
+            FailMem();
+
+        if ((mem->values = malloc(sizeof(void *) * 1024)) == NULL)
+            FailMem();
+
+        mem->count = 1;
+        mem->size = 1024;
+        mem->max = 682;
+
+        for (i = 0; i < mem->size; ++i)
+            mem->values[i] = NULL;
+
+        if ((ptr = malloc(size)) == NULL)
+            FailMem();
+
+        mem->values[(uintptr_t)ptr % 1024] = ptr;
+    }
+    else
+        ptr = PushMem(size);
+
+    return ptr;
+}
+
+void RemoveMem(void * ptr)
+{
+    int index, start;
+
+    if (mem == NULL)
+        return;
+
+    index = (uintptr_t)ptr % mem->size;
+    start = index;
+
+    while (mem->values[index] != ptr)
+    {
+        if (++index == mem->size)
+            index = 0;
+
+        if (index == start)
+            return;
+    }
+
+    free(mem->values[index]);
+    --(mem->count);
+}
+
+void EndMem()
+{
+    int i;
+
+    if (mem == NULL)
+        return;
+
+    for (i = 0; i < mem->size; ++i)
+        free(mem->values[i]);
+
+    free(mem->values);
+    free(mem);
+}
+
+static void * PushMem(unsigned int size)
+{
+    void * ptr;
+    int index;
+
+    if (mem->count == mem->max)
+        PlusMem();
+
+    if ((ptr = malloc(sizeof(size))) == NULL)
+        FailMem();
+
+    index = (uintptr_t)ptr % mem->size;
+
+    while (mem->values[index] != NULL)
+    {
+        if (++index == mem->size)
+            index = 0;
+    }
+
+    mem->values[index] = ptr;
+    ++(mem->count);
+
+    return ptr;
+}
+
+static void PlusMem()
+{
+    void ** temp;
+    void ** old;
+    int index = 0, size, capacity, i;
+
+    size = mem->max;
+
+    if ((old = malloc(sizeof(void *) * size)) == NULL)
+        FailMem();
+
+    for (i = 0; i < mem->size; ++i)
+    {
+        if (mem->values[i] != NULL)
+            old[index++] = mem->values[i];
+    }
+
+    capacity = (mem->size * 3) >> 1;
+
+    if ((temp = realloc(mem->values, sizeof(void *) * capacity)) == NULL)
+        FailMem();
+
+    mem->values = temp;
+    mem->count = size + 1;
+    mem->size = capacity;
+    mem->max = (capacity << 1) / 3;
+
+    for (i = 0; i < mem->size; ++i)
+        mem->values[i] = NULL;
+
+    for (i = 0; i < size; ++i)
+    {
+        index = (uintptr_t)(old[i]) % mem->size;
+
+        while (mem->values[index] != NULL)
+        {
+            if (++index == mem->size)
+                index = 0;
+        }
+
+        mem->values[index] = old[i];
+    }
+
+    free(old);
+}
+
+static void FailMem()
+{
+    fprintf(stderr, "ERROR: No more memory available for allocation\n");
+    EndMem();
+    exit(-1);
+}
