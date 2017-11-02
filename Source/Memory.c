@@ -1,51 +1,91 @@
+/* Memory.c: Implements various memory management functions defined in Memory.h */
+/* Also defines and implemtents various static functions to help with speicifc memory management tasks */
+/* Finally this file defines and maintains the single Memory Map (mem) */
+
 #include "Memory.h"
 #include <signal.h>
 #include <stdio.h>
 
+/* The single Memory Map used and maintained by the program */
 static Memory * mem = NULL;
 
+/* The function used to handle various signals */
+/* Param1 int: The signal to handle */
 static void HandleMem(int);
+
+/* Allocates and adds a pointer to the memory map while maintaining the correct size */
+/* Param1 size_t: The size of the memory to be allocated */
+/* Returns: A pointer to the allocated memory */
 static void * PushMem(size_t);
+
+/* Increases the size of the memory map values array and copies all the old pointers to the new map */
 static void PlusMem();
+
+/* Moves all the pointers in the map to a seperate array */
+/* Note the memory nodes in the map will be released during the move */
+/* Returns: An array containing all the pointers in the map */
 static void ** DupMem();
+
+/* Prints an error message, releases all memory, and exits the program upon a memory failure */
+/* Param1 char *: The message to print */
+/* Param2 int: The error code */
 static void FailMem(char *, int);
+
+/* Releases all memory used by a memory node */
+/* Param1 MemNode *: The node to be released */
 static void EndNode(MemNode *);
+
+/* Releases a specific pointer from a memory node */
+/* Param1 MemNode *: The memory node to search in */
+/* Param2 void *: The pointer to search for and release if found, the encompassing node is released from the list as well */
 static MemNode * RemoveNode(MemNode *, void *);
 
+/* Initializes the memory map and the signal handlers responsible for handling allocated memory in the event of an interrupt */
 void BuildMem()
 {
+    uint64_t i;
+
+    /* Attempt to allocate the memory map */
+    if ((mem = malloc(sizeof(Memory))) == NULL)
+        FailMem("ERROR: No more memory available for allocation", -1);
+
+    /* Attempt to allocate the memory map values array */
+    if ((mem->values = malloc(sizeof(MemNode *) * 1024)) == NULL)
+        FailMem("ERROR: No more memory available for allocation", -1);
+
+    /* Set intial map values */
+    mem->count = 0;
+    mem->size = 1024;
+    mem->max = 682;
+
+    /* Initialize the map */
+    for (i = 0; i < mem->size; ++i)
+        mem->values[i] = NULL;
+
     /* Use the HandleMem function to handle segmentation faults and interrupts */
     signal(SIGSEGV, HandleMem);
     signal(SIGINT, HandleMem);
 }
 
+/* Allocates a new pointer and adds it to the memory map */
+/* Param (size) size_t: The size of the memory to be allocated */
+/* Returns: A pointer to the newly allocated memory, free with either RemoveMem, ClearMem, or EndMem */
 void * NewMem(size_t size)
 {
     MemNode * node;
     void * ptr;
-    uint64_t i;
+
+    /* Don't add anything to the map and simply return NULL if size is specified as 0 */
+    if (size == 0)
+        return NULL;
 
     /* If memory has already been allocated then simply add the new pointer to the map, otherwise do the initial setup */
     if (mem != NULL)
         ptr = PushMem(size);
     else
     {
-        /* Attempt to allocate the memory map */
-        if ((mem = malloc(sizeof(Memory))) == NULL)
-            FailMem("ERROR: No more memory available for allocation", -1);
-
-        /* Attempt to allocate the memory map values array */
-        if ((mem->values = malloc(sizeof(MemNode *) * 1024)) == NULL)
-            FailMem("ERROR: No more memory available for allocation", -1);
-
-        /* Set intial map values */
-        mem->count = 1;
-        mem->size = 1024;
-        mem->max = 682;
-
-         /* Initialize the map */
-        for (i = 0; i < mem->size; ++i)
-            mem->values[i] = NULL;
+        /* Initialize the map */
+        BuildMem();
 
         /* Attempt to allocate the memory node */
         if ((node = malloc(sizeof(MemNode))) == NULL)
@@ -68,6 +108,8 @@ void * NewMem(size_t size)
     return ptr;
 }
 
+/* Releases and removes a pointer from the memory map */
+/* Param (ptr) void *: The pointer to be released and removed */
 void RemoveMem(void * ptr)
 {
     uint64_t index;
@@ -81,17 +123,21 @@ void RemoveMem(void * ptr)
     mem->values[index] = RemoveNode(mem->values[index], ptr);
 }
 
+/* Releases, removes, and nulls a pointer from the memory map */
+/* Param (ptr) void **: A pointer to the address to be released, removed, and nulled */
 void NilMem(void ** ptr)
 {
     /* We can't dereference a NULL pointer so we just return */
     if (ptr == NULL)
         return;
 
-    /* Remove the pointer referenced by ptr from the memory map and set ptr to be null */
+    /* Remove the pointer referenced by ptr from the memory map and set it to be null */
     RemoveMem(*ptr);
     *ptr = NULL;
 }
 
+/* Releases and removes all memory in the memory map */
+/* Note the memory map itself and its values array will still be allocated */
 void ClearMem()
 {
     uint64_t i;
@@ -108,13 +154,14 @@ void ClearMem()
     }
 }
 
+/* Releases and removes all memory in the memory map and releases the memory map itself and its values array */
 void EndMem()
 {
     /* Nothing can be removed from a NULL memory map */
     if (mem == NULL)
         return;
 
-    /* Remove all the memory in use by the memory map and the release the map itself */
+    /* Remove all the memory in use by the memory map and then release the map itself */
     ClearMem();
     free(mem->values);
     free(mem);
@@ -122,22 +169,27 @@ void EndMem()
     mem = NULL;
 }
 
+/* The function used to handle various signals */
+/* Param (sig) int: The signal to handle */
 static void HandleMem(int sig)
 {
     /* Print an error message and release all memory in the memory map when a signal is handled */
     switch (sig)
     {
         case SIGSEGV:
-            EndMem("ERROR: segmentation fault encountered\n", SIGSEGV);
+            FailMem("ERROR: segmentation fault encountered\n", SIGSEGV);
             break;
         case SIGINT:
-            EndMem("ERROR: program was cancelled while running\n", SIGINT);
+            FailMem("ERROR: program was cancelled while running\n", SIGINT);
             break;
         default:
-            EndMem("ERROR: unexpected signal encountered\n", sig);
+            FailMem("ERROR: unexpected signal encountered\n", sig);
     }
 }
 
+/* Allocates and adds a pointer to the memory map while maintaining the correct size */
+/* Param (size) size_t: The size of the memory to be allocated */
+/* Returns: A pointer to the allocated memory */
 static void * PushMem(size_t size)
 {
     MemNode * node;
@@ -170,6 +222,7 @@ static void * PushMem(size_t size)
     return ptr;
 }
 
+/* Increases the size of the memory map values array and copies all the old pointers to the new map */
 static void PlusMem()
 {
     MemNode ** temp, * node;
@@ -192,7 +245,7 @@ static void PlusMem()
     mem->size = capacity;
     mem->max = (capacity << 1) / 3;
 
-    /* Initialize the memory map vlue array */
+    /* Initialize the memory map value array */
     for (i = 0; i < mem->size; ++i)
         mem->values[i] = NULL;
 
@@ -217,6 +270,9 @@ static void PlusMem()
     free(old);
 }
 
+/* Moves all the pointers in the map to a seperate array */
+/* Note the memory nodes in the map will be released during the move */
+/* Returns: An array containing all the pointers in the map */
 static void ** DupMem()
 {
     MemNode * next, * node;
@@ -247,6 +303,9 @@ static void ** DupMem()
     return old;
 }
 
+/* Prints an error message, releases all memory, and exits the program upon a memory failure */
+/* Param (message) char *: The message to print */
+/* Param (code) int: The error code */
 static void FailMem(char * message, int code)
 {
     /* Upon some failure, print an error message, release all memory in the memory map, and then exit with a failure code */
@@ -255,6 +314,8 @@ static void FailMem(char * message, int code)
     exit(code);
 }
 
+/* Releases all memory used by a memory node */
+/* Param (node) MemNode *: The node to be released */
 static void EndNode(MemNode * node)
 {
     MemNode * next, * temp = node;
@@ -270,6 +331,9 @@ static void EndNode(MemNode * node)
     }
 }
 
+/* Releases a specific pointer from a memory node */
+/* Param (node) MemNode *: The memory node to search in */
+/* Param (ptr) void *: The pointer to search for and release if found, the encompassing node is released from the list as well */
 static MemNode * RemoveNode(MemNode * node, void * ptr)
 {
     MemNode * prev, * temp;
