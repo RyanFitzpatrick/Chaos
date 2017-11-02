@@ -10,7 +10,7 @@
 #include <stdint.h>
 #endif
 
-/* Memory.h requires the size_ttype defined in stdlib.h */
+/* Memory.h requires the size_t type defined in stdlib.h */
 #ifndef _STDLIB_
 #define _STDLIB_
 #include <stdlib.h>

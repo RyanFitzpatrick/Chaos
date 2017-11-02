@@ -245,7 +245,7 @@ static void * PushMem(size_t size)
         FailMem("ERROR: No more memory available for allocation", -1);
 
     /* Attempt to allocate the new pointer */
-    if ((ptr = malloc(sizeof(size))) == NULL)
+    if ((ptr = malloc(size)) == NULL)
     {
         free(node);
         FailMem("ERROR: No more memory available for allocation", -1);

@@ -1,14 +1,21 @@
 CFLAGS = -c -fPIC -ansi -pedantic -Wall -Werror -O0
 
-All: Clean Main Memory Num Libs
+All: Clean Build Files Libs
 
 Libs:
 	gcc ../Clean/Main/*.o -o ../Run/Main
 	gcc -shared ../Clean/Libs/*.o -o ../Run/libChaos.so
 	ar rcs ../Run/libChaos.a ../Clean/Libs/*.o
 
+Build: Main HashMap Memory
+
+Files: Num
+
 Main:
 	gcc $(CFLAGS) ../Source/Main.c -I../Headers -o ../Clean/Main/Main.o
+
+HashMap:
+	gcc $(CFLAGS) ../Source/HashMap.c -I../Headers -o ../Clean/Main/HashMap.o
 
 Memory:
 	gcc $(CFLAGS) ../Source/Memory.c -I../Headers -o ../Clean/Main/Memory.o
