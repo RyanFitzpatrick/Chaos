@@ -8,12 +8,13 @@ static void HandleMem(int);
 static void * PushMem(size_t);
 static void PlusMem();
 static void ** DupMem();
-static void FailMem();
+static void FailMem(char *, int);
 static void EndNode(MemNode *);
 static MemNode * RemoveNode(MemNode *, void *);
 
 void BuildMem()
 {
+    /* Use the HandleMem function to handle segmentation faults and interrupts */
     signal(SIGSEGV, HandleMem);
     signal(SIGINT, HandleMem);
 }
@@ -24,34 +25,46 @@ void * NewMem(size_t size)
     void * ptr;
     uint64_t i;
 
+    /* If memory has already been allocated then simply add the new pointer to the map, otherwise do the initial setup */
     if (mem != NULL)
         ptr = PushMem(size);
     else
     {
+        /* Attempt to allocate the memory map */
         if ((mem = malloc(sizeof(Memory))) == NULL)
-            FailMem();
+            FailMem("ERROR: No more memory available for allocation", -1);
 
+        /* Attempt to allocate the memory map values array */
         if ((mem->values = malloc(sizeof(MemNode *) * 1024)) == NULL)
-            FailMem();
+            FailMem("ERROR: No more memory available for allocation", -1);
 
+        /* Set intial map values */
         mem->count = 1;
         mem->size = 1024;
         mem->max = 682;
 
+         /* Initialize the map */
         for (i = 0; i < mem->size; ++i)
             mem->values[i] = NULL;
 
-        if ((ptr = malloc(size)) == NULL)
-            FailMem();
-
+        /* Attempt to allocate the memory node */
         if ((node = malloc(sizeof(MemNode))) == NULL)
-            FailMem();
+            FailMem("ERROR: No more memory available for allocation", -1);
 
+        /* Attempt to allocate the new pointer */
+        if ((ptr = malloc(size)) == NULL)
+        {
+            free(node);
+            FailMem("ERROR: No more memory available for allocation", -1);
+        }
+
+        /* Add the new pointer to the map */
         node->value = ptr;
         node->next = NULL;
         mem->values[(intptr_t)ptr % 1024] = node;
     }
 
+    /* Return the newly allocated pointer */
     return ptr;
 }
 
@@ -59,18 +72,22 @@ void RemoveMem(void * ptr)
 {
     uint64_t index;
 
+    /* Nothing can be removed from a NULL memory map */
     if (mem == NULL)
         return;
 
+    /*Determine the pointers specific position in the map and remove it if it exists */
     index = (uintptr_t)ptr % mem->size;
     mem->values[index] = RemoveNode(mem->values[index], ptr);
 }
 
 void NilMem(void ** ptr)
 {
+    /* We can't dereference a NULL pointer so we just return */
     if (ptr == NULL)
         return;
 
+    /* Remove the pointer referenced by ptr from the memory map and set ptr to be null */
     RemoveMem(*ptr);
     *ptr = NULL;
 }
@@ -79,18 +96,25 @@ void ClearMem()
 {
     uint64_t i;
 
+    /* Nothing can be removed from a NULL memory map */
     if (mem == NULL)
         return;
 
+    /* Remove all the memory in use by the memory map */
     for (i = 0; i < mem->size; i++)
+    {
         EndNode(mem->values[i]);
+        mem->values[i] = NULL;
+    }
 }
 
 void EndMem()
 {
+    /* Nothing can be removed from a NULL memory map */
     if (mem == NULL)
         return;
 
+    /* Remove all the memory in use by the memory map and the release the map itself */
     ClearMem();
     free(mem->values);
     free(mem);
@@ -100,19 +124,17 @@ void EndMem()
 
 static void HandleMem(int sig)
 {
+    /* Print an error message and release all memory in the memory map when a signal is handled */
     switch (sig)
     {
         case SIGSEGV:
-            fprintf(stderr, "ERROR: segmentation fault encountered\n");
-            EndMem();
+            EndMem("ERROR: segmentation fault encountered\n", SIGSEGV);
             break;
         case SIGINT:
-            fprintf(stderr, "ERROR: program was cancelled while running\n");
-            EndMem();
+            EndMem("ERROR: program was cancelled while running\n", SIGINT);
             break;
         default:
-            fprintf(stderr, "ERROR: unexpected signal (%d) encountered\n", sig);
-            EndMem();
+            EndMem("ERROR: unexpected signal encountered\n", sig);
     }
 }
 
@@ -122,21 +144,29 @@ static void * PushMem(size_t size)
     void * ptr;
     uint64_t index;
 
+    /* If the memory map is at capacity then grow it before adding any new entries */
     if (mem->count == mem->max)
         PlusMem();
 
-    if ((ptr = malloc(sizeof(size))) == NULL)
-        FailMem();
-
+    /* Attempt to allocate the memory node */
     if ((node = malloc(sizeof(MemNode))) == NULL)
-        FailMem();
+        FailMem("ERROR: No more memory available for allocation", -1);
 
+    /* Attempt to allocate the new pointer */
+    if ((ptr = malloc(sizeof(size))) == NULL)
+    {
+        free(node);
+        FailMem("ERROR: No more memory available for allocation", -1);
+    }
+
+    /* Determine the correct position in the memory map for the pointer and add it to the memory node at that position */
     index = (uintptr_t)ptr % mem->size;
     node->value = ptr;
     node->next = mem->values[index];
     mem->values[index] = node;
     ++(mem->count);
 
+    /* Return the newly allocated pointer */
     return ptr;
 }
 
@@ -144,40 +174,46 @@ static void PlusMem()
 {
     MemNode ** temp, * node;
     void ** old;
-    uint64_t index = 0, size, capacity, i;
+    uint64_t index = 0, capacity, i;
 
+    /* Get a copy of all the currently allocated pointers and compute the capacity for the new memory map */
     old = DupMem();
-    size = mem->max;
     capacity = (mem->size * 3) >> 1;
 
+    /* Attempt to allocate the new memory map value array */
     if ((temp = malloc(sizeof(MemNode *) * capacity)) == NULL)
     {
         free(old);
-        FailMem();
+        FailMem("ERROR: No more memory available for allocation", -1);
     }
 
+    /* Update the memory map to contain the new values */
     mem->values = temp;
-    mem->count = size;
     mem->size = capacity;
     mem->max = (capacity << 1) / 3;
 
+    /* Initialize the memory map vlue array */
     for (i = 0; i < mem->size; ++i)
         mem->values[i] = NULL;
 
-    for (i = 0; i < size; ++i)
+    /* Add all the previously copied pointers to the new memory map */
+    for (i = 0; i < mem->count; ++i)
     {
+        /* Attempt to allocate the memory node */
         if ((node = malloc(sizeof(MemNode))) == NULL)
         {
             free(old);
-            FailMem();
+            FailMem("ERROR: No more memory available for allocation", -1);
         }
 
+        /* Determine the correct position for the pointer and add it to the memory map */
         index = (uintptr_t)(old[i]) % mem->size;
         node->value = old[i];
         node->next = mem->values[index];
         mem->values[index] = node;
     }
 
+    /* Release the memory used by the memory copy */
     free(old);
 }
 
@@ -187,13 +223,16 @@ static void ** DupMem()
     void ** old;
     uint64_t index = 0, i;
 
-    if ((old = malloc(sizeof(void *) * mem->max)) == NULL)
-        FailMem();
+    /* Attempt to allocate an array to hold all the pointers */
+    if ((old = malloc(sizeof(void *) * mem->count)) == NULL)
+        FailMem("ERROR: No more memory available for allocation", -1);
 
+    /* Add all the currently used pointers to the array */
     for (i = 0; i < mem->size; ++i)
     {
         node = mem->values[i];
 
+        /* Add all pointers in the node to the array, release the memory used by the nodes as well */
         while (node != NULL)
         {
             next = node->next;
@@ -203,21 +242,24 @@ static void ** DupMem()
         }
     }
 
+     /* Release the memory used by the old memory map array and return the copy */
     free(mem->values);
     return old;
 }
 
-static void FailMem()
+static void FailMem(char * message, int code)
 {
-    fprintf(stderr, "ERROR: No more memory available for allocation\n");
+    /* Upon some failure, print an error message, release all memory in the memory map, and then exit with a failure code */
+    fprintf(stderr, "%s (%d)\n", message, code);
     EndMem();
-    exit(-1);
+    exit(code);
 }
 
 static void EndNode(MemNode * node)
 {
     MemNode * next, * temp = node;
 
+    /* Release all memory used by a memory node */
     while (temp != NULL)
     {
         next = temp->next;
@@ -232,11 +274,14 @@ static MemNode * RemoveNode(MemNode * node, void * ptr)
 {
     MemNode * prev, * temp;
 
+    /* Nothing can be removed from a NULL memory node */
     if (node == NULL)
         return NULL;
 
+    /* Handle the case where there's only one pointer in the node */
     if (node->next == NULL)
     {
+        /* If the pointer matches the one in the node then release it and return NULL, otherwise simply return the unmodified node */
         if (node->value == ptr)
         {
             free(node->value);
@@ -251,8 +296,10 @@ static MemNode * RemoveNode(MemNode * node, void * ptr)
     prev = node->next;
     temp = prev->next;
 
+    /* Try and find the pointer in the node */
     while (temp != NULL)
     {
+        /* If we find a matching pointer then release it and return the updated node */
         if (temp->value == ptr)
         {
             prev->next = temp->next;
@@ -266,5 +313,6 @@ static MemNode * RemoveNode(MemNode * node, void * ptr)
         temp = temp->next;
     }
 
+     /* If the pointer wasn't found simply return the unmodified node */
     return node;
 }
