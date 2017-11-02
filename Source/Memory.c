@@ -1,15 +1,16 @@
 #include "Memory.h"
 #include <signal.h>
-#include <stdint.h>
 #include <stdio.h>
-#include <stdlib.h>
 
 static Memory * mem = NULL;
 
 static void HandleMem(int);
-static void * PushMem(unsigned int);
+static void * PushMem(size_t);
 static void PlusMem();
+static void ** DupMem();
 static void FailMem();
+static void EndNode(MemNode *);
+static MemNode * RemoveNode(MemNode *, void *);
 
 void BuildMem()
 {
@@ -17,10 +18,11 @@ void BuildMem()
     signal(SIGINT, HandleMem);
 }
 
-void * NewMem(unsigned int size)
+void * NewMem(size_t size)
 {
+    MemNode * node;
     void * ptr;
-    unsigned int i;
+    uint64_t i;
 
     if (mem != NULL)
         ptr = PushMem(size);
@@ -29,7 +31,7 @@ void * NewMem(unsigned int size)
         if ((mem = malloc(sizeof(Memory))) == NULL)
             FailMem();
 
-        if ((mem->values = malloc(sizeof(void *) * 1024)) == NULL)
+        if ((mem->values = malloc(sizeof(MemNode *) * 1024)) == NULL)
             FailMem();
 
         mem->count = 1;
@@ -42,7 +44,12 @@ void * NewMem(unsigned int size)
         if ((ptr = malloc(size)) == NULL)
             FailMem();
 
-        mem->values[(uintptr_t)ptr % 1024] = ptr;
+        if ((node = malloc(sizeof(MemNode))) == NULL)
+            FailMem();
+
+        node->value = ptr;
+        node->next = NULL;
+        mem->values[(intptr_t)ptr % 1024] = node;
     }
 
     return ptr;
@@ -50,26 +57,13 @@ void * NewMem(unsigned int size)
 
 void RemoveMem(void * ptr)
 {
-    unsigned int index, start;
+    uint64_t index;
 
     if (mem == NULL)
         return;
 
     index = (uintptr_t)ptr % mem->size;
-    start = index;
-
-    while (mem->values[index] != ptr)
-    {
-        if (++index == mem->size)
-            index = 0;
-
-        if (index == start)
-            return;
-    }
-
-    free(mem->values[index]);
-    mem->values[index] = NULL;
-    --(mem->count);
+    mem->values[index] = RemoveNode(mem->values[index], ptr);
 }
 
 void NilMem(void ** ptr)
@@ -81,16 +75,23 @@ void NilMem(void ** ptr)
     *ptr = NULL;
 }
 
-void EndMem()
+void ClearMem()
 {
-    unsigned int i;
+    uint64_t i;
 
     if (mem == NULL)
         return;
 
-    for (i = 0; i < mem->size; ++i)
-        free(mem->values[i]);
+    for (i = 0; i < mem->size; i++)
+        EndNode(mem->values[i]);
+}
 
+void EndMem()
+{
+    if (mem == NULL)
+        return;
+
+    ClearMem();
     free(mem->values);
     free(mem);
 
@@ -103,7 +104,10 @@ static void HandleMem(int sig)
     {
         case SIGSEGV:
             fprintf(stderr, "ERROR: segmentation fault encountered\n");
+            EndMem();
+            break;
         case SIGINT:
+            fprintf(stderr, "ERROR: program was cancelled while running\n");
             EndMem();
             break;
         default:
@@ -112,10 +116,11 @@ static void HandleMem(int sig)
     }
 }
 
-static void * PushMem(unsigned int size)
+static void * PushMem(size_t size)
 {
+    MemNode * node;
     void * ptr;
-    unsigned int index;
+    uint64_t index;
 
     if (mem->count == mem->max)
         PlusMem();
@@ -123,15 +128,13 @@ static void * PushMem(unsigned int size)
     if ((ptr = malloc(sizeof(size))) == NULL)
         FailMem();
 
+    if ((node = malloc(sizeof(MemNode))) == NULL)
+        FailMem();
+
     index = (uintptr_t)ptr % mem->size;
-
-    while (mem->values[index] != NULL)
-    {
-        if (++index == mem->size)
-            index = 0;
-    }
-
-    mem->values[index] = ptr;
+    node->value = ptr;
+    node->next = mem->values[index];
+    mem->values[index] = node;
     ++(mem->count);
 
     return ptr;
@@ -139,25 +142,19 @@ static void * PushMem(unsigned int size)
 
 static void PlusMem()
 {
-    void ** temp;
+    MemNode ** temp, * node;
     void ** old;
-    unsigned int index = 0, size, capacity, i;
+    uint64_t index = 0, size, capacity, i;
 
+    old = DupMem();
     size = mem->max;
-
-    if ((old = malloc(sizeof(void *) * size)) == NULL)
-        FailMem();
-
-    for (i = 0; i < mem->size; ++i)
-    {
-        if (mem->values[i] != NULL)
-            old[index++] = mem->values[i];
-    }
-
     capacity = (mem->size * 3) >> 1;
 
-    if ((temp = realloc(mem->values, sizeof(void *) * capacity)) == NULL)
+    if ((temp = malloc(sizeof(MemNode *) * capacity)) == NULL)
+    {
+        free(old);
         FailMem();
+    }
 
     mem->values = temp;
     mem->count = size;
@@ -169,18 +166,45 @@ static void PlusMem()
 
     for (i = 0; i < size; ++i)
     {
-        index = (uintptr_t)(old[i]) % mem->size;
-
-        while (mem->values[index] != NULL)
+        if ((node = malloc(sizeof(MemNode))) == NULL)
         {
-            if (++index == mem->size)
-                index = 0;
+            free(old);
+            FailMem();
         }
 
-        mem->values[index] = old[i];
+        index = (uintptr_t)(old[i]) % mem->size;
+        node->value = old[i];
+        node->next = mem->values[index];
+        mem->values[index] = node;
     }
 
     free(old);
+}
+
+static void ** DupMem()
+{
+    MemNode * next, * node;
+    void ** old;
+    uint64_t index = 0, i;
+
+    if ((old = malloc(sizeof(void *) * mem->max)) == NULL)
+        FailMem();
+
+    for (i = 0; i < mem->size; ++i)
+    {
+        node = mem->values[i];
+
+        while (node != NULL)
+        {
+            next = node->next;
+            old[index++] = node->value;
+            free(node);
+            node = next;
+        }
+    }
+
+    free(mem->values);
+    return old;
 }
 
 static void FailMem()
@@ -188,4 +212,59 @@ static void FailMem()
     fprintf(stderr, "ERROR: No more memory available for allocation\n");
     EndMem();
     exit(-1);
+}
+
+static void EndNode(MemNode * node)
+{
+    MemNode * next, * temp = node;
+
+    while (temp != NULL)
+    {
+        next = temp->next;
+        free(temp->value);
+        free(temp);
+        --(mem->count);
+        temp = next;
+    }
+}
+
+static MemNode * RemoveNode(MemNode * node, void * ptr)
+{
+    MemNode * prev, * temp;
+
+    if (node == NULL)
+        return NULL;
+
+    if (node->next == NULL)
+    {
+        if (node->value == ptr)
+        {
+            free(node->value);
+            free(node);
+            --(mem->count);
+            return NULL;
+        }
+        else
+            return node;
+    }
+
+    prev = node->next;
+    temp = prev->next;
+
+    while (temp != NULL)
+    {
+        if (temp->value == ptr)
+        {
+            prev->next = temp->next;
+            free(temp->value);
+            free(temp);
+            --(mem->count);
+            return node;
+        }
+
+        prev = temp;
+        temp = temp->next;
+    }
+
+    return node;
 }
