@@ -9,6 +9,7 @@ typedef struct Memory
     unsigned int max;
 } Memory;
 
+void BuildMem();
 void * NewMem(unsigned int);
 void RemoveMem(void *);
 void EndMem();

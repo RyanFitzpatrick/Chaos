@@ -1,20 +1,30 @@
 #include "Memory.h"
+#include <signal.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 
 static Memory * mem = NULL;
 
+static void HandleMem(int);
 static void * PushMem(unsigned int);
 static void PlusMem();
 static void FailMem();
+
+void BuildMem()
+{
+    signal(SIGSEGV, HandleMem);
+    signal(SIGINT, HandleMem);
+}
 
 void * NewMem(unsigned int size)
 {
     void * ptr;
     unsigned int i;
 
-    if (mem == NULL)
+    if (mem != NULL)
+        ptr = PushMem(size);
+    else
     {
         if ((mem = malloc(sizeof(Memory))) == NULL)
             FailMem();
@@ -34,8 +44,6 @@ void * NewMem(unsigned int size)
 
         mem->values[(uintptr_t)ptr % 1024] = ptr;
     }
-    else
-        ptr = PushMem(size);
 
     return ptr;
 }
@@ -78,6 +86,21 @@ void EndMem()
     free(mem);
 
     mem = NULL;
+}
+
+static void HandleMem(int sig)
+{
+    switch (sig)
+    {
+        case SIGSEGV:
+            fprintf(stderr, "ERROR: segmentation fault encountered\n");
+        case SIGINT:
+            EndMem();
+            break;
+        default:
+            fprintf(stderr, "ERROR: unexpected signal (%d) encountered\n", sig);
+            EndMem();
+    }
 }
 
 static void * PushMem(unsigned int size)

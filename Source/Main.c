@@ -8,6 +8,8 @@ int main()
     int * values[SIZE];
     int i;
 
+    BuildMem();
+
     for (i = 0; i < SIZE; ++i)
     {
         values[i] = NewMem(sizeof(int));

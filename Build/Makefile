@@ -1,4 +1,3 @@
-CC = gcc
 CFLAGS = -c -fPIC -ansi -pedantic -Wall -Werror -O0
 
 All: Clean Main Memory Num Libs
@@ -9,14 +8,14 @@ Libs:
 	ar rcs ../Run/libChaos.a ../Clean/Libs/*.o
 
 Main:
-	$(CC) $(CFLAGS) ../Source/Main.c -I../Headers -o ../Clean/Main/Main.o
+	gcc $(CFLAGS) ../Source/Main.c -I../Headers -o ../Clean/Main/Main.o
 
 Memory:
-	$(CC) $(CFLAGS) ../Source/Memory.c -I../Headers -o ../Clean/Main/Memory.o
+	gcc $(CFLAGS) ../Source/Memory.c -I../Headers -o ../Clean/Main/Memory.o
 	cp ../Clean/Main/Memory.o ../Clean/Libs/Memory.o
 
 Num:
-	$(CC) $(CFLAGS) ../Source/Num.c -I../Headers -o ../Clean/Libs/Num.o
+	gcc $(CFLAGS) ../Source/Num.c -I../Headers -o ../Clean/Libs/Num.o
 
 Clean:
 	rm -rf ../Clean/Main/*
