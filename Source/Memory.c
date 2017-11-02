@@ -26,6 +26,11 @@ static void PlusMem();
 /* Returns: An array containing all the pointers in the map */
 static void ** DupMem();
 
+/* Tries to find the encompassing memory node for a pointer in the memory map */
+/* Param1 void *: The pointer to find */
+/* Returns: The encompassing memory node for the pointer in the memory map, or NULL if the pointer wasn't found */
+static MemNode * FindMem(void *);
+
 /* Prints an error message, releases all memory, and exits the program upon a memory failure */
 /* Param1 char *: The message to print */
 /* Param2 int: The error code */
@@ -101,11 +106,46 @@ void * NewMem(size_t size)
         /* Add the new pointer to the map */
         node->value = ptr;
         node->next = NULL;
-        mem->values[(intptr_t)ptr % 1024] = node;
+        mem->values[(uintptr_t)ptr % 1024] = node;
     }
 
     /* Return the newly allocated pointer */
     return ptr;
+}
+
+/* Resizes a pointer in the memory map */
+/* If the pointer is not in the map then it will be added */
+/* Param (ptr) void *: The pointer to be resized */
+/* Param (size) size_t: The new size for the pointer */
+/* Returns: A pointer to the new memory */
+void * ResizeMem(void * ptr, size_t size)
+{
+    MemNode * node;
+    void * temp;
+
+    /* If size is specified as 0 then simply remove the pointer from the memory map */
+    if (size == 0)
+    {
+        RemoveMem(ptr);
+        return NULL;
+    }
+
+    /* Attempt to find the encompassing node for the pointer */
+    node = FindMem(ptr);
+
+    /* If the pointer exists in the memory map then resize it, otherwise simply add it */
+    if (node != NULL)
+    {
+        /* Attempt to allocate the new pointer */
+        if ((temp = realloc(ptr, size)) == NULL)
+            FailMem("ERROR: No more memory available for allocation", -1);
+
+        /* Update the memory map to use the new pointer and then return it */
+        node->value = temp;
+        return node->value;
+    }
+    else
+        return NewMem(size);
 }
 
 /* Releases and removes a pointer from the memory map */
@@ -301,6 +341,30 @@ static void ** DupMem()
      /* Release the memory used by the old memory map array and return the copy */
     free(mem->values);
     return old;
+}
+
+/* Tries to find the encompassing memory node for a pointer in the memory map */
+/* Param1 void *: The pointer to find */
+/* Returns: The encompassing memory node for the pointer in the memory map, or NULL if the pointer wasn't found */
+static MemNode * FindMem(void * ptr)
+{
+    MemNode * node;
+    uint64_t index = (uintptr_t)ptr % mem->size;
+
+    node = mem->values[index];
+
+    /* Try to find the pointer in the node list */
+    while (node != NULL)
+    {
+        /* Return the node if the pointer was found */
+        if (node->value == ptr)
+            return node;
+
+        node = node->next;
+    }
+
+    /* Return NULL if the pointer wasn't found */
+    return NULL;
 }
 
 /* Prints an error message, releases all memory, and exits the program upon a memory failure */

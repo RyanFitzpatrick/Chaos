@@ -46,6 +46,13 @@ void BuildMem();
 /* Returns: A pointer to the newly allocated memory, free with either RemoveMem, ClearMem, or EndMem */
 void * NewMem(size_t);
 
+/* Resizes a pointer in the memory map */
+/* If the pointer is not in the map then it will be added */
+/* Param1 void *: The pointer to be resized */
+/* Param2 size_t: The new size for the pointer */
+/* Returns: A pointer to the new memory */
+void * ResizeMem(void *, size_t);
+
 /* Releases and removes a pointer from the memory map */
 /* Param1 void *: The pointer to be released and removed */
 void RemoveMem(void *);
