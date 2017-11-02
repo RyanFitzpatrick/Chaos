@@ -72,6 +72,15 @@ void RemoveMem(void * ptr)
     --(mem->count);
 }
 
+void NilMem(void ** ptr)
+{
+    if (ptr == NULL)
+        return;
+
+    RemoveMem(*ptr);
+    *ptr = NULL;
+}
+
 void EndMem()
 {
     unsigned int i;

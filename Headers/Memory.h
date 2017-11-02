@@ -12,6 +12,7 @@ typedef struct Memory
 void BuildMem();
 void * NewMem(unsigned int);
 void RemoveMem(void *);
+void NilMem(void **);
 void EndMem();
 
 #endif
