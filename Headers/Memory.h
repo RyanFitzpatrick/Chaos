@@ -1,4 +1,4 @@
-/* Memory.h: Defines various types and prototypes use for memory management */
+/* Memory.h: Defines various types and prototypes used for memory management */
 /* The implementations are defined in Memory.c */
 
 #ifndef _CH_MEMORY_
@@ -39,7 +39,7 @@ typedef struct Memory
 } Memory;
 
 /* Initializes the memory map and the signal handlers responsible for handling allocated memory in the event of an interrupt */
-/* This must be calld before using any memory functions */
+/* This must be called before using any memory functions */
 void BuildMem();
 
 /* Allocates a new pointer and adds it to the memory map */
