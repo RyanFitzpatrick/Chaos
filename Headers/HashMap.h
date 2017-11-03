@@ -9,6 +9,7 @@
 
 typedef struct MapNode
 {
+    uint64_t hash;
     char * key;
     void * value;
     struct MapNode * next;

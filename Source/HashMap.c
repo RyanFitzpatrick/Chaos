@@ -6,7 +6,7 @@
 static void PlusMap(HashMap *);
 static void EndNode(HashMap *, MapNode *);
 static MapNode * RemoveNode(HashMap *, MapNode *, char *);
-static uint64_t hash(char *, int64_t);
+static uint64_t hash(char *);
 
 HashMap * BuildMap()
 {
@@ -29,20 +29,22 @@ HashMap * BuildMap()
 void PushToMap(HashMap * map, char * key, void * value)
 {
     MapNode * node;
-    uint64_t index;
+    uint64_t code, index;
 
     if (map->count == map->max)
         PlusMap(map);
 
-    index = hash(key, map->size);
+    code = hash(key);
+    index = code % map->size;
 
     node = NewMem(sizeof(MapNode));
     node->next = map->nodes[index];
+    node->hash = code;
     node->value = value;
     node->key = NewMem(sizeof(char) * (strlen(key) + 1));
     strcpy(node->key, key);
 
-    map->nodes[hash(key, map->size)] = node;
+    map->nodes[index] = node;
     ++(map->count);
 }
 
@@ -51,7 +53,7 @@ void * SearchMap(HashMap * map, char * key)
     MapNode * node;
     uint64_t index;
 
-    index = hash(key, map->size);
+    index = hash(key) % map->size;
     node = map->nodes[index];
 
     while (node != NULL)
@@ -69,7 +71,7 @@ void RemoveFromMap(HashMap * map, char * key)
 {
     uint64_t index;
 
-    index = hash(key, map->size);
+    index = hash(key) % map->size;
     map->nodes[index] = RemoveNode(map, map->nodes[index], key);
 }
 
@@ -87,8 +89,8 @@ void ClearMap(HashMap * map)
 void EndMap(HashMap * map)
 {
     ClearMap(map);
-    free(map->nodes);
-    free(map);
+    RemoveMem(map->nodes);
+    RemoveMem(map);
 
     map = NULL;
 }
@@ -110,8 +112,8 @@ static void PlusMap(HashMap * map)
 
         while (node != NULL)
         {
+            index = node->hash % capacity;
             next = node->next;
-            index = hash(node->key, capacity);
             node->next = temp[index];
             temp[index] = node;
             node = next;
@@ -131,8 +133,8 @@ static void EndNode(HashMap * map, MapNode * node)
     while (temp != NULL)
     {
         next = temp->next;
-        free(temp->value);
-        free(temp);
+        RemoveMem(temp->value);
+        RemoveMem(temp);
         --(map->count);
         temp = next;
     }
@@ -149,8 +151,8 @@ static MapNode * RemoveNode(HashMap * map, MapNode * node, char * key)
     {
         if (strcmp(node->value, key) == 0)
         {
-            free(node->value);
-            free(node);
+            RemoveMem(node->value);
+            RemoveMem(node);
             --(map->count);
             return NULL;
         }
@@ -166,8 +168,8 @@ static MapNode * RemoveNode(HashMap * map, MapNode * node, char * key)
         if (strcmp(temp->value, key) == 0)
         {
             prev->next = temp->next;
-            free(temp->value);
-            free(temp);
+            RemoveMem(temp->value);
+            RemoveMem(temp);
             --(map->count);
             return node;
         }
@@ -179,12 +181,12 @@ static MapNode * RemoveNode(HashMap * map, MapNode * node, char * key)
     return node;
 }
 
-uint64_t hash(char * key, int64_t size)
+uint64_t hash(char * key)
 {
     int len = strlen(key), hash = 0, i;
 
     for (i = 0; i < len; ++i)
-        hash += 7 + (31 * key[i]);
+        hash += (7 + (31 * key[i]));
 
-    return hash % size;
+    return hash;
 }
