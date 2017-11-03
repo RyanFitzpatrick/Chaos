@@ -39,6 +39,7 @@ typedef struct Memory
 } Memory;
 
 /* Initializes the memory map and the signal handlers responsible for handling allocated memory in the event of an interrupt */
+/* This must be calld before using any memory functions */
 void BuildMem();
 
 /* Allocates a new pointer and adds it to the memory map */

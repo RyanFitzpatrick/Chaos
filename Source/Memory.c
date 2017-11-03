@@ -13,18 +13,8 @@ static Memory * mem = NULL;
 /* Param1 int: The signal to handle */
 static void HandleMem(int);
 
-/* Allocates and adds a pointer to the memory map while maintaining the correct size */
-/* Param1 size_t: The size of the memory to be allocated */
-/* Returns: A pointer to the allocated memory */
-static void * PushMem(size_t);
-
 /* Increases the size of the memory map values array and copies all the old pointers to the new map */
 static void PlusMem();
-
-/* Moves all the pointers in the map to a seperate array */
-/* Note the memory nodes in the map will be released during the move */
-/* Returns: An array containing all the pointers in the map */
-static void ** DupMem();
 
 /* Tries to find the encompassing memory node for a pointer in the memory map */
 /* Param1 void *: The pointer to find */
@@ -46,6 +36,7 @@ static void EndNode(MemNode *);
 static MemNode * RemoveNode(MemNode *, void *);
 
 /* Initializes the memory map and the signal handlers responsible for handling allocated memory in the event of an interrupt */
+/* This must be calld before using any memory functions */
 void BuildMem()
 {
     uint64_t i;
@@ -79,35 +70,33 @@ void * NewMem(size_t size)
 {
     MemNode * node;
     void * ptr;
+    uint64_t index;
 
     /* Don't add anything to the map and simply return NULL if size is specified as 0 */
-    if (size == 0)
+    if (size == 0 || mem == NULL || mem->values == NULL)
         return NULL;
 
-    /* If memory has already been allocated then simply add the new pointer to the map, otherwise do the initial setup */
-    if (mem != NULL)
-        ptr = PushMem(size);
-    else
+    /* If the memory map is at capacity then grow it before adding any new entries */
+    if (mem->count == mem->max)
+        PlusMem();
+
+    /* Attempt to allocate the memory node */
+    if ((node = malloc(sizeof(MemNode))) == NULL)
+        FailMem("ERROR: No more memory available for allocation", -1);
+
+    /* Attempt to allocate the new pointer */
+    if ((ptr = malloc(size)) == NULL)
     {
-        /* Initialize the map */
-        BuildMem();
-
-        /* Attempt to allocate the memory node */
-        if ((node = malloc(sizeof(MemNode))) == NULL)
-            FailMem("ERROR: No more memory available for allocation", -1);
-
-        /* Attempt to allocate the new pointer */
-        if ((ptr = malloc(size)) == NULL)
-        {
-            free(node);
-            FailMem("ERROR: No more memory available for allocation", -1);
-        }
-
-        /* Add the new pointer to the map */
-        node->value = ptr;
-        node->next = NULL;
-        mem->values[(uintptr_t)ptr % 1024] = node;
+        free(node);
+        FailMem("ERROR: No more memory available for allocation", -1);
     }
+
+    /* Determine the correct position in the memory map for the pointer and add it to the memory node at that position */
+    index = (uintptr_t)ptr % mem->size;
+    node->value = ptr;
+    node->next = mem->values[index];
+    mem->values[index] = node;
+    ++(mem->count);
 
     /* Return the newly allocated pointer */
     return ptr;
@@ -227,120 +216,42 @@ static void HandleMem(int sig)
     }
 }
 
-/* Allocates and adds a pointer to the memory map while maintaining the correct size */
-/* Param (size) size_t: The size of the memory to be allocated */
-/* Returns: A pointer to the allocated memory */
-static void * PushMem(size_t size)
-{
-    MemNode * node;
-    void * ptr;
-    uint64_t index;
-
-    /* If the memory map is at capacity then grow it before adding any new entries */
-    if (mem->count == mem->max)
-        PlusMem();
-
-    /* Attempt to allocate the memory node */
-    if ((node = malloc(sizeof(MemNode))) == NULL)
-        FailMem("ERROR: No more memory available for allocation", -1);
-
-    /* Attempt to allocate the new pointer */
-    if ((ptr = malloc(size)) == NULL)
-    {
-        free(node);
-        FailMem("ERROR: No more memory available for allocation", -1);
-    }
-
-    /* Determine the correct position in the memory map for the pointer and add it to the memory node at that position */
-    index = (uintptr_t)ptr % mem->size;
-    node->value = ptr;
-    node->next = mem->values[index];
-    mem->values[index] = node;
-    ++(mem->count);
-
-    /* Return the newly allocated pointer */
-    return ptr;
-}
-
 /* Increases the size of the memory map values array and copies all the old pointers to the new map */
 static void PlusMem()
 {
-    MemNode ** temp, * node;
-    void ** old;
-    uint64_t index = 0, capacity, i;
+    MemNode ** temp, * node, * next;
+    uint64_t capacity, index, i;
 
-    /* Get a copy of all the currently allocated pointers and compute the capacity for the new memory map */
-    old = DupMem();
+    /* Compute the capacity for the new memory map */
     capacity = (mem->size * 3) >> 1;
 
     /* Attempt to allocate the new memory map value array */
     if ((temp = malloc(sizeof(MemNode *) * capacity)) == NULL)
-    {
-        free(old);
         FailMem("ERROR: No more memory available for allocation", -1);
-    }
-
-    /* Update the memory map to contain the new values */
-    mem->values = temp;
-    mem->size = capacity;
-    mem->max = (capacity << 1) / 3;
 
     /* Initialize the memory map value array */
-    for (i = 0; i < mem->size; ++i)
-        mem->values[i] = NULL;
+    for (i = 0; i < capacity; ++i)
+        temp[i] = NULL;
 
-    /* Add all the previously copied pointers to the new memory map */
-    for (i = 0; i < mem->count; ++i)
-    {
-        /* Attempt to allocate the memory node */
-        if ((node = malloc(sizeof(MemNode))) == NULL)
-        {
-            free(old);
-            FailMem("ERROR: No more memory available for allocation", -1);
-        }
-
-        /* Determine the correct position for the pointer and add it to the memory map */
-        index = (uintptr_t)(old[i]) % mem->size;
-        node->value = old[i];
-        node->next = mem->values[index];
-        mem->values[index] = node;
-    }
-
-    /* Release the memory used by the memory copy */
-    free(old);
-}
-
-/* Moves all the pointers in the map to a seperate array */
-/* Note the memory nodes in the map will be released during the move */
-/* Returns: An array containing all the pointers in the map */
-static void ** DupMem()
-{
-    MemNode * next, * node;
-    void ** old;
-    uint64_t index = 0, i;
-
-    /* Attempt to allocate an array to hold all the pointers */
-    if ((old = malloc(sizeof(void *) * mem->count)) == NULL)
-        FailMem("ERROR: No more memory available for allocation", -1);
-
-    /* Add all the currently used pointers to the array */
     for (i = 0; i < mem->size; ++i)
     {
         node = mem->values[i];
 
-        /* Add all pointers in the node to the array, release the memory used by the nodes as well */
         while (node != NULL)
         {
             next = node->next;
-            old[index++] = node->value;
-            free(node);
+            index = (uintptr_t)(node->value) % capacity;
+            node->next = temp[index];
+            temp[index] = node;
             node = next;
         }
     }
 
-     /* Release the memory used by the old memory map array and return the copy */
+    /* Update the memory map to contain the new values */
     free(mem->values);
-    return old;
+    mem->values = temp;
+    mem->size = capacity;
+    mem->max = (capacity << 1) / 3;
 }
 
 /* Tries to find the encompassing memory node for a pointer in the memory map */
