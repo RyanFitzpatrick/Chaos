@@ -1,5 +1,5 @@
 /* Memory.c: Implements various memory management functions defined in Memory.h */
-/* Also defines and implemtents various static functions to help with speicifc memory management tasks */
+/* Also defines and implements various static functions to help with speicifc memory management tasks */
 /* Finally this file defines and maintains the single Memory Map (mem) */
 
 #include "Memory.h"
