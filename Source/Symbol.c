@@ -33,7 +33,7 @@ void EndSymbol(Symbol * symbol)
     if (symbol == NULL)
         return;
 
-    /* Release all memory used by the Symol and then release the Symbol itself */
+    /* Release all memory used by the Symbol and then release the Symbol itself */
     EndType(symbol->type);
     RemoveMem(symbol->name);
     RemoveMem(symbol);
