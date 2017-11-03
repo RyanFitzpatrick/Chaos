@@ -7,7 +7,7 @@
 /* The Type structure relies on the HashMap type from HashMap.h */
 #include "HashMap.h"
 
-/* The strcuture used to define a Chaos Type */
+/* The structure used to define a Chaos Type */
 typedef struct Type
 {
     /* The name of the Type */

@@ -1,9 +1,11 @@
 CFLAGS = -c -fPIC -ansi -pedantic -Wall -Werror -O0
 
-All: Clean Build Files Libs
+All: Clean Build Files Libs Run
+
+Run:
+	gcc ../Clean/Main/*.o -o ../Run/Main
 
 Libs:
-	gcc ../Clean/Main/*.o -o ../Run/Main
 	gcc -shared ../Clean/Libs/*.o -o ../Run/libChaos.so
 	ar rcs ../Run/libChaos.a ../Clean/Libs/*.o
 

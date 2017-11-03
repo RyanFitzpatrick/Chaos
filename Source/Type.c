@@ -30,7 +30,7 @@ void EndType(Type * type)
     if (type == NULL)
         return;
 
-    /* Release all memory used by the Type structure and the Type structure itself */
+    /* Release all memory used by the Type structure and then release the Type structure itself */
     EndMap(type->fields);
     RemoveMem(type->name);
     RemoveMem(type);

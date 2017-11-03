@@ -1,7 +1,15 @@
+/* Symbol.c: Implements various functions defined in Symbol.h */
+
 #include "Symbol.h"
 #include "Memory.h"
 #include <string.h>
 
+/* Initializes a Symbol with the given information */
+/* Param (name) char *: The name of the Symbol */
+/* Param (type) Type *: The underlying Type of the Symbol */
+/* Param (mod) Mod: The modiier applied to the Symbol */
+/* Param (token) Token: The Token defining the Symbol */
+/* Returns: A newly allocated Symbol containing the information passed into the function */
 Symbol * BuildSymbol(char * name, Type * type, Mod mod, Token token)
 {
     /* Allocate memory for the Symbol */
@@ -17,11 +25,15 @@ Symbol * BuildSymbol(char * name, Type * type, Mod mod, Token token)
     return symbol;
 }
 
+/* Releases all memory used by a Symbol */
+/* Param (symbol) Symbol *: The Symbol to be released */
 void EndSymbol(Symbol * symbol)
 {
+    /* If symbol is NULL then we stop since there's nothing we can do */
     if (symbol == NULL)
         return;
 
+    /* Release all memory used by the Symol and then release the Symbol itself */
     EndType(symbol->type);
     RemoveMem(symbol->name);
     RemoveMem(symbol);
