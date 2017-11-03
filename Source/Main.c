@@ -10,8 +10,8 @@ int main()
     char key[10];
     int * ptr, i;
 
-    BuildMem();
-    map = BuildMap();
+    BuildMem(1024);
+    map = BuildMap(1024);
 
     for (i = 0; i < SIZE; ++i)
     {

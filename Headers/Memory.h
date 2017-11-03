@@ -39,6 +39,7 @@ typedef struct Memory
 } Memory;
 
 /* Initializes the memory map and the signal handlers responsible for handling allocated memory in the event of an interrupt */
+/* Param1 uint64_t: Initial size parameter, the smallest power of 2 that is also equal to or larger than nwill be the map's size */
 /* This must be called before using any memory functions */
 void BuildMem();
 

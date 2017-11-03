@@ -36,26 +36,45 @@ static void EndNode(MemNode *);
 static MemNode * RemoveNode(MemNode *, void *);
 
 /* Initializes the memory map and the signal handlers responsible for handling allocated memory in the event of an interrupt */
+/* Param (n) uint64_t: Initial size parameter, the smallest power of 2 that is also equal to or larger than nwill be the map's size */
 /* This must be calld before using any memory functions */
-void BuildMem()
+void BuildMem(uint64_t n)
 {
-    uint64_t i;
+    uint64_t count = 0, size, i;
+
+    /* Do nothing if size is specified as 0 */
+    if (n == 0)
+        return;
+
+    /* Determine the smallest power of 2 that is equal to or larger than n, this will be our initial size */
+    if (!(n & (n - 1)))
+        size = n;
+    else
+    {
+        while (n != 0)
+        {
+            n >>= 1;
+            ++count;
+        }
+
+        size = 1 << count;
+    }
 
     /* Attempt to allocate the memory map */
     if ((mem = malloc(sizeof(Memory))) == NULL)
         FailMem("ERROR: No more memory available for allocation", -1);
 
     /* Attempt to allocate the memory map values array */
-    if ((mem->values = malloc(sizeof(MemNode *) * 1024)) == NULL)
+    if ((mem->values = malloc(sizeof(MemNode *) * size)) == NULL)
         FailMem("ERROR: No more memory available for allocation", -1);
 
     /* Set intial map values */
     mem->count = 0;
-    mem->size = 1024;
-    mem->max = 768;
+    mem->size = size;
+    mem->max = (size * 3) >> 2;
 
     /* Initialize the map */
-    for (i = 0; i < mem->size; ++i)
+    for (i = 0; i < size; ++i)
         mem->values[i] = NULL;
 
     /* Use the HandleMem function to handle segmentation faults and interrupts */

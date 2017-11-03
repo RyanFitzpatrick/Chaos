@@ -26,23 +26,42 @@ static MapNode * RemoveNode(HashMap *, MapNode *, char *);
 static uint64_t hash(char *);
 
 /* Initalizes the HashMap and its meta data, must be called before using the HashMap */
+/* Param (n) uint64_t: Initial size parameter, the smallest power of 2 that is also equal to or larger than nwill be the map's size */
 /* Returns: A newly allocated HashMap */
-HashMap * BuildMap()
+HashMap * BuildMap(uint64_t n)
 {
     HashMap * map;
-    uint64_t i;
+    uint64_t count = 0, size, i;
+
+    /* Return NULL if size is specified as 0 */
+    if (n == 0)
+        return NULL;
+
+    /* Determine the smallest power of 2 that is equal to or larger than n, this will be our initial size */
+    if (!(n & (n - 1)))
+        size = n;
+    else
+    {
+        while (n != 0)
+        {
+            n >>= 1;
+            ++count;
+        }
+
+        size = 1 << count;
+    }
 
     /* Initalize the map and its node array */
     map = NewMem(sizeof(HashMap));
-    map->nodes = NewMem(sizeof(MapNode *) * 1024);
+    map->nodes = NewMem(sizeof(MapNode *) * size);
 
     /* Set initial metadata values */
     map->count = 0;
-    map->size = 1024;
-    map->max = 768;
+    map->size = size;
+    map->max = (size * 3) >> 2;
 
     /* Initialize the array nodes to NULL */
-    for (i = 0; i < map->size; ++i)
+    for (i = 0; i < size; ++i)
         map->nodes[i] = NULL;
 
     return map;
@@ -253,10 +272,11 @@ static MapNode * RemoveNode(HashMap * map, MapNode * node, char * key)
 /* Param1 char *: The string to be hashed */
 uint64_t hash(char * key)
 {
-    int len = strlen(key), hash = 0, i;
+    int len = strlen(key), hash = 7, i;
 
+    /* Computethe hash value usin the following funtion */
     for (i = 0; i < len; ++i)
-        hash *= (7 + (31 * key[i]));
+        hash = (hash * 31) + key[i];
 
     return hash;
 }

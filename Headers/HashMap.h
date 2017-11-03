@@ -37,8 +37,9 @@ typedef struct HashMap
 } HashMap;
 
 /* Initalizes the HashMap and its meta data, must be called before using the HashMap */
+/* Param1 uint64_t: Initial size parameter, the smallest power of 2 that is also equal to or larger than nwill be the map's size */
 /* Returns: A newly allocated HashMap */
-HashMap * BuildMap();
+HashMap * BuildMap(uint64_t);
 
 /* Adds a key value pair to the map */
 /* Param1 HashMap *: The map to be added to */
