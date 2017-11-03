@@ -73,7 +73,7 @@ void * NewMem(size_t size)
     uint64_t index;
 
     /* Don't add anything to the map and simply return NULL if size is specified as 0 */
-    if (size == 0 || mem == NULL || mem->values == NULL)
+    if (size == 0)
         return NULL;
 
     /* If the memory map is at capacity then grow it before adding any new entries */
@@ -143,10 +143,6 @@ void RemoveMem(void * ptr)
 {
     uint64_t index;
 
-    /* Nothing can be removed from a NULL memory map */
-    if (mem == NULL)
-        return;
-
     /*Determine the pointers specific position in the map and remove it if it exists */
     index = (uintptr_t)ptr % mem->size;
     mem->values[index] = RemoveNode(mem->values[index], ptr);
@@ -171,10 +167,6 @@ void ClearMem()
 {
     uint64_t i;
 
-    /* Nothing can be removed from a NULL memory map */
-    if (mem == NULL)
-        return;
-
     /* Remove all the memory in use by the memory map */
     for (i = 0; i < mem->size; i++)
     {
@@ -186,10 +178,6 @@ void ClearMem()
 /* Releases and removes all memory in the memory map and releases the memory map itself and its values array */
 void EndMem()
 {
-    /* Nothing can be removed from a NULL memory map */
-    if (mem == NULL)
-        return;
-
     /* Remove all the memory in use by the memory map and then release the map itself */
     ClearMem();
     free(mem->values);
@@ -219,7 +207,7 @@ static void HandleMem(int sig)
 /* Increases the size of the memory map values array and copies all the old pointers to the new map */
 static void PlusMem()
 {
-    MemNode ** temp, * node, * next;
+    MemNode ** temp, * next, * node;
     uint64_t capacity, index, i;
 
     /* Compute the capacity for the new memory map */
@@ -233,6 +221,7 @@ static void PlusMem()
     for (i = 0; i < capacity; ++i)
         temp[i] = NULL;
 
+    /* Copy every memory node from the old array to the new one */
     for (i = 0; i < mem->size; ++i)
     {
         node = mem->values[i];
