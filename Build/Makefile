@@ -7,7 +7,7 @@ Libs:
 	gcc -shared ../Clean/Libs/*.o -o ../Run/libChaos.so
 	ar rcs ../Run/libChaos.a ../Clean/Libs/*.o
 
-Build: Main HashMap Memory Type
+Build: Main HashMap Memory Symbol Type
 
 Main:
 	gcc $(CFLAGS) ../Source/Main.c -I../Headers -o ../Clean/Main/Main.o
@@ -18,6 +18,9 @@ HashMap:
 Memory:
 	gcc $(CFLAGS) ../Source/Memory.c -I../Headers -o ../Clean/Main/Memory.o
 	cp ../Clean/Main/Memory.o ../Clean/Libs/Memory.o
+
+Symbol:
+	gcc $(CFLAGS) ../Source/Symbol.c -I../Headers -o ../Clean/Main/Symbol.o
 
 Type:
 	gcc $(CFLAGS) ../Source/Type.c -I../Headers -o ../Clean/Main/Type.o
