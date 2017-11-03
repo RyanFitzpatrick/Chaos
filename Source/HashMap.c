@@ -3,7 +3,6 @@
 
 #include "HashMap.h"
 #include "Memory.h"
-#include <stdio.h>
 #include <string.h>
 
 /* Doubles the capacity of a map and then moves the ndes from the old array to the new array */
@@ -272,10 +271,14 @@ static MapNode * RemoveNode(HashMap * map, MapNode * node, char * key)
 /* Param1 char *: The string to be hashed */
 uint64_t hash(char * key)
 {
-    int len = strlen(key), hash = 7, i;
+    int hash = 7, i = 0;
 
-    /* Computethe hash value usin the following funtion */
-    for (i = 0; i < len; ++i)
+    /* If the key is NULL return the default hash of 0 */
+    if (key == NULL)
+        return 0;
+
+    /* Compute the hash value using the following funtion */
+    while (key[i++] != '\0')
         hash = (hash * 31) + key[i];
 
     return hash;
