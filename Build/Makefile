@@ -9,7 +9,7 @@ Libs:
 	gcc -shared ../Clean/Libs/*.o -o ../Run/libChaos.so
 	ar rcs ../Run/libChaos.a ../Clean/Libs/*.o
 
-Build: Main HashMap Memory Symbol SymbolTable Type
+Build: Main HashMap Memory ParseStack ParseTree Symbol SymbolTable Type
 
 Main:
 	gcc $(CFLAGS) ../Source/Main.c -I../Headers -o ../Clean/Main/Main.o
@@ -20,6 +20,12 @@ HashMap:
 Memory:
 	gcc $(CFLAGS) ../Source/Memory.c -I../Headers -o ../Clean/Main/Memory.o
 	cp ../Clean/Main/Memory.o ../Clean/Libs/Memory.o
+
+ParseStack:
+	gcc $(CFLAGS) ../Source/ParseStack.c -I../Headers -o ../Clean/Main/ParseStack.o
+
+ParseTree:
+	gcc $(CFLAGS) ../Source/ParseTree.c -I../Headers -o ../Clean/Main/ParseTree.o
 
 Symbol:
 	gcc $(CFLAGS) ../Source/Symbol.c -I../Headers -o ../Clean/Main/Symbol.o
