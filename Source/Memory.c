@@ -52,7 +52,7 @@ void BuildMem()
     /* Set intial map values */
     mem->count = 0;
     mem->size = 1024;
-    mem->max = 682;
+    mem->max = 768;
 
     /* Initialize the map */
     for (i = 0; i < mem->size; ++i)
@@ -92,7 +92,7 @@ void * NewMem(size_t size)
     }
 
     /* Determine the correct position in the memory map for the pointer and add it to the memory node at that position */
-    index = (uintptr_t)ptr % mem->size;
+    index = (uintptr_t)ptr & (mem->size - 1);
     node->value = ptr;
     node->next = mem->values[index];
     mem->values[index] = node;
@@ -144,7 +144,7 @@ void RemoveMem(void * ptr)
     uint64_t index;
 
     /*Determine the pointers specific position in the map and remove it if it exists */
-    index = (uintptr_t)ptr % mem->size;
+    index = (uintptr_t)ptr & (mem->size - 1);
     mem->values[index] = RemoveNode(mem->values[index], ptr);
 }
 
@@ -208,10 +208,11 @@ static void HandleMem(int sig)
 static void PlusMem()
 {
     MemNode ** temp, * next, * node;
-    uint64_t capacity, index, i;
+    uint64_t capacity, mask, index, i;
 
     /* Compute the capacity for the new memory map */
-    capacity = (mem->size * 3) >> 1;
+    capacity = mem->size << 1;
+    mask = capacity - 1;
 
     /* Attempt to allocate the new memory map value array */
     if ((temp = malloc(sizeof(MemNode *) * capacity)) == NULL)
@@ -229,7 +230,7 @@ static void PlusMem()
         while (node != NULL)
         {
             next = node->next;
-            index = (uintptr_t)(node->value) % capacity;
+            index = (uintptr_t)(node->value) & mask;
             node->next = temp[index];
             temp[index] = node;
             node = next;
@@ -240,7 +241,7 @@ static void PlusMem()
     free(mem->values);
     mem->values = temp;
     mem->size = capacity;
-    mem->max = (capacity << 1) / 3;
+    mem->max = (capacity * 3) >> 2;
 }
 
 /* Tries to find the encompassing memory node for a pointer in the memory map */
@@ -249,7 +250,7 @@ static void PlusMem()
 static MemNode * FindMem(void * ptr)
 {
     MemNode * node;
-    uint64_t index = (uintptr_t)ptr % mem->size;
+    uint64_t index = (uintptr_t)ptr & (mem->size - 1);
 
     node = mem->values[index];
 

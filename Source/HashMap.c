@@ -18,7 +18,7 @@ HashMap * BuildMap()
 
     map->count = 0;
     map->size = 1024;
-    map->max = 682;
+    map->max = 768;
 
     for (i = 0; i < map->size; ++i)
         map->nodes[i] = NULL;
@@ -35,7 +35,7 @@ void PushToMap(HashMap * map, char * key, void * value)
         PlusMap(map);
 
     code = hash(key);
-    index = code % map->size;
+    index = code & (map->size - 1);
 
     node = NewMem(sizeof(MapNode));
     node->next = map->nodes[index];
@@ -53,7 +53,7 @@ void * SearchMap(HashMap * map, char * key)
     MapNode * node;
     uint64_t index;
 
-    index = hash(key) % map->size;
+    index = hash(key) & (map->size - 1);
     node = map->nodes[index];
 
     while (node != NULL)
@@ -71,7 +71,7 @@ void RemoveFromMap(HashMap * map, char * key)
 {
     uint64_t index;
 
-    index = hash(key) % map->size;
+    index = hash(key) & (map->size - 1);
     map->nodes[index] = RemoveNode(map, map->nodes[index], key);
 }
 
@@ -98,9 +98,10 @@ void EndMap(HashMap * map)
 static void PlusMap(HashMap * map)
 {
     MapNode ** temp, * next, * node;
-    uint64_t capacity, index, i;
+    uint64_t capacity, mask, index, i;
 
-    capacity = (map->size * 3) >> 1;
+    capacity = map->size << 1;
+    mask = capacity - 1;
     temp = NewMem(sizeof(MapNode *) * capacity);
 
     for (i = 0; i < capacity; ++i)
@@ -112,7 +113,7 @@ static void PlusMap(HashMap * map)
 
         while (node != NULL)
         {
-            index = node->hash % capacity;
+            index = node->hash & mask;
             next = node->next;
             node->next = temp[index];
             temp[index] = node;
@@ -123,7 +124,7 @@ static void PlusMap(HashMap * map)
     RemoveMem(map->nodes);
     map->nodes = temp;
     map->size = capacity;
-    map->max = (capacity << 1) / 3;
+    map->max = (capacity * 3) >> 2;
 }
 
 static void EndNode(HashMap * map, MapNode * node)
