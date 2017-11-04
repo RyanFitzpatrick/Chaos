@@ -5,8 +5,7 @@
 
 /* Initializes a SymbolTable */
 /* Returns: A newly allocated SymbolTable */
-SymbolTable * BuildSymbolTable()
-{
+SymbolTable * BuildSymbolTable() {
     /* Allocate memory for the SymbolTable */
     SymbolTable * st = NewMem(sizeof(SymbolTable));
 
@@ -19,8 +18,7 @@ SymbolTable * BuildSymbolTable()
 
 /* Releases all memory used by a SymbolTable */
 /* Param (st) SymbolTable *: The SymbolTable to be released */
-void EndSymbolTable(SymbolTable * st)
-{
+void EndSymbolTable(SymbolTable * st) {
     /* If st is NULL then we stop since there's nothing we can do */
     if (st == NULL)
         return;

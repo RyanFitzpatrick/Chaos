@@ -1,8 +1,7 @@
 #include "ParseTree.h"
 #include "Memory.h"
 
-ParseTree * BuildParseTree(Symbol * symbol)
-{
+ParseTree * BuildParseTree(Symbol * symbol) {
     /* Allocate memory for the ParseTree */
     ParseTree * tree = NewMem(sizeof(ParseTree));
 
@@ -15,8 +14,7 @@ ParseTree * BuildParseTree(Symbol * symbol)
     return tree;
 }
 
-void EndParseTree(ParseTree * tree)
-{
+void EndParseTree(ParseTree * tree) {
     /* If tree is NULL then we stop since there's nothing we can do */
     if (tree == NULL)
         return;

@@ -10,8 +10,7 @@
 #include "Type.h"
 
 /* The structure used to define a Chaos Symbol */
-typedef struct Symbol
-{
+typedef struct Symbol {
     /* The name of the Symmbol */
     char * name;
     /* The underlying Type of the Symbol */

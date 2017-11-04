@@ -17,8 +17,7 @@
 #endif
 
 /* The linked list structure used to implement seperate chaining in the memory map */
-typedef struct MemNode
-{
+typedef struct MemNode {
     /* The allocated pointer being stored by the node */
     void * value;
     /* A pointer linking the current node to the next node */
@@ -26,8 +25,7 @@ typedef struct MemNode
 } MemNode;
 
 /* The Memory HashMap use to manage and store all allocated resources in one place */
-typedef struct Memory
-{
+typedef struct Memory {
     /* The array of nodes that store all allocated pointers, collisions are handled with seperate chaining */
     MemNode ** values;
     /* The current number of pointers in the map */

@@ -1,8 +1,7 @@
 #include "ParseStack.h"
 #include "Memory.h"
 
-ParseStack * BuildParseStack()
-{
+ParseStack * BuildParseStack() {
     /* Allocate memory for the ParseStack */
     ParseStack * stack = NewMem(sizeof(ParseStack));
 
@@ -13,8 +12,7 @@ ParseStack * BuildParseStack()
     return stack;
 }
 
-void EndParseStack(ParseStack * stack)
-{
+void EndParseStack(ParseStack * stack) {
     /* If stack is NULL then we stop since there's nothing we can do */
     if (stack == NULL)
         return;

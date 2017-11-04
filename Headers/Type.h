@@ -8,8 +8,7 @@
 #include "HashMap.h"
 
 /* The structure used to define a Chaos Type */
-typedef struct Type
-{
+typedef struct Type {
     /* The name of the Type */
     char * name;
     /* The fields that make up the Type (HashMap of Symbols) */

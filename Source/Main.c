@@ -4,8 +4,7 @@
 
 #define SIZE 10000
 
-int main()
-{
+int main() {
     HashMap * map;
     char key[10];
     int * ptr, i;
@@ -13,8 +12,7 @@ int main()
     BuildMem(1024);
     map = BuildMap(1024);
 
-    for (i = 0; i < SIZE; ++i)
-    {
+    for (i = 0; i < SIZE; ++i) {
        sprintf(key, "%d", i);
        ptr = NewMem(sizeof(int));
        *ptr = i;

@@ -3,8 +3,7 @@
 
 #include "ParseTree.h"
 
-typedef struct ParseStack
-{
+typedef struct ParseStack {
     ParseTree * node;
     struct ParseStack * next;
 } ParseStack;

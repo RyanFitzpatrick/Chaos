@@ -3,8 +3,7 @@
 
 #include "Symbol.h"
 
-typedef struct ParseTree
-{
+typedef struct ParseTree {
     Symbol * symbol;
     struct ParseTree * left;
     struct ParseTree * center;
