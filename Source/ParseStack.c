@@ -1,7 +1,12 @@
+/* ParseStack.c: Implements various functions defined in ParseStack.h */
+
 #include "ParseStack.h"
 #include "Memory.h"
 
-ParseStack * BuildParseStack() {
+/* Initializes an empty ParseStack */
+/* Returns: A newly allocated ParseStack */
+ParseStack * BuildParseStack()
+{
     /* Allocate memory for the ParseStack */
     ParseStack * stack = NewMem(sizeof(ParseStack));
 
@@ -12,7 +17,10 @@ ParseStack * BuildParseStack() {
     return stack;
 }
 
-void EndParseStack(ParseStack * stack) {
+/* Releases all memory used by a ParseStack */
+/* Param (stack) ParseStack *: The ParseStack to be released */
+void EndParseStack(ParseStack * stack)
+{
     /* If stack is NULL then we stop since there's nothing we can do */
     if (stack == NULL)
         return;

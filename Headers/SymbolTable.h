@@ -8,7 +8,8 @@
 #include "HashMap.h"
 
 /* The structure used to define a SymbolTable */
-typedef struct SymbolTable {
+typedef struct SymbolTable
+{
     /* The map containing all the Symbols in the Table (HashMap of Symbols) */
     HashMap * values;
     /* A pointer to another SymbolTable, this is used to for handling scope */

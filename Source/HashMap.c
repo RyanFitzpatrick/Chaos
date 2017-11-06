@@ -27,25 +27,18 @@ static uint64_t hash(char *);
 /* Initalizes the HashMap and its meta data, must be called before using the HashMap */
 /* Param (n) uint64_t: Initial size parameter, the smallest power of 2 that is also equal to or larger than nwill be the map's size */
 /* Returns: A newly allocated HashMap */
-HashMap * BuildMap(uint64_t n) {
+HashMap * BuildMap(uint64_t n)
+{
     HashMap * map;
-    uint64_t count = 0, size, i;
+    uint64_t size = 1, i;
 
     /* Return NULL if size is specified as 0 */
     if (n == 0)
         return NULL;
 
     /* Determine the smallest power of 2 that is equal to or larger than n, this will be our initial size */
-    if (!(n & (n - 1))) {
-        size = n;
-    } else {
-        while (n != 0) {
-            n >>= 1;
-            ++count;
-        }
-
-        size = 1 << count;
-    }
+    while (size < n)
+        size <<= 1;
 
     /* Initalize the map and its node array */
     map = NewMem(sizeof(HashMap));
@@ -67,7 +60,8 @@ HashMap * BuildMap(uint64_t n) {
 /* Param (map) HashMap *: The map to be added to */
 /* Param (key) char *: The string key to be hashed and used to identify the key value pair in the map */
 /* Param (value) void *: The value to add to the map */
-void PushToMap(HashMap * map, char * key, void * value) {
+void PushToMap(HashMap * map, char * key, void * value)
+{
     MapNode * node;
     uint64_t code, index;
 
@@ -96,7 +90,8 @@ void PushToMap(HashMap * map, char * key, void * value) {
 /* Param (map) HashMap *: The map to be searched */
 /* Param (key) char *: The string key to be hashed and used to find the value in the map */
 /* Returns: The value if found in the map, NULL otherwise */
-void * SearchMap(HashMap * map, char * key) {
+void * SearchMap(HashMap * map, char * key)
+{
     MapNode * node;
     uint64_t index;
 
@@ -105,7 +100,8 @@ void * SearchMap(HashMap * map, char * key) {
     node = map->nodes[index];
 
     /* Try and find a matching node in the node list at the specific position in the array */
-    while (node != NULL) {
+    while (node != NULL)
+    {
         /* If we find a matching key then return the corresponding value */
         if (strcmp(node->key, key) == 0)
             return node->value;
@@ -120,7 +116,8 @@ void * SearchMap(HashMap * map, char * key) {
 /* Removes a key value pair from the map */
 /* Param (map) HashMap *: The map to be removed from */
 /* Param (key) char *: The string key to be hashed and used to find the value in the map */
-void RemoveFromMap(HashMap * map, char * key) {
+void RemoveFromMap(HashMap * map, char * key)
+{
     uint64_t index;
 
     /* Hash the key then remove the matching node from the node list at that specific position in the array */
@@ -130,11 +127,13 @@ void RemoveFromMap(HashMap * map, char * key) {
 
 /* Removes all key value pairs from the map */
 /* Param (map) HashMap *: The map to be cleared */
-void ClearMap(HashMap * map) {
+void ClearMap(HashMap * map)
+{
     uint64_t i;
 
     /* Clear all node lists in the array */
-    for (i = 0; i < map->size; i++) {
+    for (i = 0; i < map->size; i++)
+    {
         EndNode(map, map->nodes[i]);
         map->nodes[i] = NULL;
     }
@@ -142,7 +141,8 @@ void ClearMap(HashMap * map) {
 
 /* Clears and removes the map from memory */
 /* Param (map) HashMap *: The map to be ended */
-void EndMap(HashMap * map) {
+void EndMap(HashMap * map)
+{
     /* Clear the array then release the memory used by the array and the map itself */
     ClearMap(map);
     RemoveMem(map->nodes);
@@ -151,7 +151,8 @@ void EndMap(HashMap * map) {
 
 /* Doubles the capacity of a map and then moves the ndes from the old array to the new array */
 /* Param1 HashMap *: The map to be increeased in capacity */
-static void PlusMap(HashMap * map) {
+static void PlusMap(HashMap * map)
+{
     MapNode ** temp, * next, * node;
     uint64_t capacity, mask, index, i;
 
@@ -165,11 +166,13 @@ static void PlusMap(HashMap * map) {
         temp[i] = NULL;
 
     /* Loop through the old array, moving each node in each node list to the new array */
-    for (i = 0; i < map->size; ++i) {
+    for (i = 0; i < map->size; ++i)
+    {
         node = map->nodes[i];
 
         /* Move every node in the node list to the new array using its previously computed hash */
-        while (node != NULL) {
+        while (node != NULL)
+        {
             index = node->hash & mask;
             next = node->next;
             node->next = temp[index];
@@ -188,11 +191,13 @@ static void PlusMap(HashMap * map) {
 /* Removes all nodes and memory used in a node list, updating the encompassing map's count as it does so */
 /* Param1 HashMap *: Th encompassing map for the node list */
 /* Param2 MapNode *: The node list to be ended */
-static void EndNode(HashMap * map, MapNode * node) {
+static void EndNode(HashMap * map, MapNode * node)
+{
     MapNode * next, * temp = node;
 
     /* Remove all the nodes in the node list and the list itself */
-    while (temp != NULL) {
+    while (temp != NULL)
+    {
         next = temp->next;
         RemoveMem(temp->value);
         RemoveMem(temp);
@@ -205,7 +210,8 @@ static void EndNode(HashMap * map, MapNode * node) {
 /* Param1 HashMap *: Th encompassing map for the node list */
 /* Param2 MapNode *: The node list to search */
 /* Param3 char *: The key used to find a matching node in the list */
-static MapNode * RemoveNode(HashMap * map, MapNode * node, char * key) {
+static MapNode * RemoveNode(HashMap * map, MapNode * node, char * key)
+{
     MapNode * prev, * temp;
 
     /* Nothing can be done to a NULL node list */
@@ -213,25 +219,29 @@ static MapNode * RemoveNode(HashMap * map, MapNode * node, char * key) {
         return NULL;
 
     /* Handle the case where there's only one node in the list */
-    if (node->next == NULL) {
+    if (node->next == NULL)
+    {
         /* If the node is a match then remove it, decrement the map's node count, and return NULL, otherwise return the unmodified node */
-        if (strcmp(node->value, key) == 0) {
+        if (strcmp(node->value, key) == 0)
+        {
             RemoveMem(node->value);
             RemoveMem(node);
             --(map->count);
             return NULL;
-        } else {
-            return node;
         }
+        else
+            return node;
     }
 
     prev = node->next;
     temp = prev->next;
 
     /* Try to find the matching node in the node list */
-    while (temp != NULL) {
+    while (temp != NULL)
+    {
         /* If the node is a match then remove it, decrement the map's node count, and return the updated node list */
-        if (strcmp(temp->value, key) == 0) {
+        if (strcmp(temp->value, key) == 0)
+        {
             prev->next = temp->next;
             RemoveMem(temp->value);
             RemoveMem(temp);
@@ -249,7 +259,8 @@ static MapNode * RemoveNode(HashMap * map, MapNode * node, char * key) {
 
 /* Hashes a string using a prime based function */
 /* Param1 char *: The string to be hashed */
-uint64_t hash(char * key) {
+uint64_t hash(char * key)
+{
     int hash = 7, i = 0;
 
     /* If the key is NULL return the default hash of 0 */

@@ -10,7 +10,8 @@
 /* Param (mod) Mod: The modiier applied to the Symbol */
 /* Param (token) Token: The Token defining the Symbol */
 /* Returns: A newly allocated Symbol containing the information passed into the function */
-Symbol * BuildSymbol(char * name, Type * type, Mod mod, Token token) {
+Symbol * BuildSymbol(char * name, Type * type, Mod mod, Token token)
+{
     /* Allocate memory for the Symbol */
     Symbol * symbol = NewMem(sizeof(Symbol));
 
@@ -26,7 +27,8 @@ Symbol * BuildSymbol(char * name, Type * type, Mod mod, Token token) {
 
 /* Releases all memory used by a Symbol */
 /* Param (symbol) Symbol *: The Symbol to be released */
-void EndSymbol(Symbol * symbol) {
+void EndSymbol(Symbol * symbol)
+{
     /* If symbol is NULL then we stop since there's nothing we can do */
     if (symbol == NULL)
         return;

@@ -38,24 +38,17 @@ static MemNode * RemoveNode(MemNode *, void *);
 /* Initializes the memory map and the signal handlers responsible for handling allocated memory in the event of an interrupt */
 /* Param (n) uint64_t: Initial size parameter, the smallest power of 2 that is also equal to or larger than nwill be the map's size */
 /* This must be calld before using any memory functions */
-void BuildMem(uint64_t n) {
-    uint64_t count = 0, size, i;
+void BuildMem(uint64_t n)
+{
+    uint64_t size = 1, i;
 
     /* Do nothing if size is specified as 0 */
     if (n == 0)
         return;
 
     /* Determine the smallest power of 2 that is equal to or larger than n, this will be our initial size */
-    if (!(n & (n - 1))) {
-        size = n;
-    } else {
-        while (n != 0) {
-            n >>= 1;
-            ++count;
-        }
-
-        size = 1 << count;
-    }
+    while (size < n)
+        size <<= 1;
 
     /* Attempt to allocate the memory map */
     if ((mem = malloc(sizeof(Memory))) == NULL)
@@ -82,7 +75,8 @@ void BuildMem(uint64_t n) {
 /* Allocates a new pointer and adds it to the memory map */
 /* Param (size) size_t: The size of the memory to be allocated */
 /* Returns: A pointer to the newly allocated memory, free with either RemoveMem, ClearMem, or EndMem */
-void * NewMem(size_t size) {
+void * NewMem(size_t size)
+{
     MemNode * node;
     void * ptr;
     uint64_t index;
@@ -100,7 +94,8 @@ void * NewMem(size_t size) {
         FailMem("ERROR: No more memory available for allocation", -1);
 
     /* Attempt to allocate the new pointer */
-    if ((ptr = malloc(size)) == NULL) {
+    if ((ptr = malloc(size)) == NULL)
+    {
         free(node);
         FailMem("ERROR: No more memory available for allocation", -1);
     }
@@ -121,12 +116,14 @@ void * NewMem(size_t size) {
 /* Param (ptr) void *: The pointer to be resized */
 /* Param (size) size_t: The new size for the pointer */
 /* Returns: A pointer to the new memory */
-void * ResizeMem(void * ptr, size_t size) {
+void * ResizeMem(void * ptr, size_t size)
+{
     MemNode * node;
     void * temp;
 
     /* If size is specified as 0 then simply remove the pointer from the memory map */
-    if (size == 0) {
+    if (size == 0)
+    {
         RemoveMem(ptr);
         return NULL;
     }
@@ -135,7 +132,8 @@ void * ResizeMem(void * ptr, size_t size) {
     node = FindMem(ptr);
 
     /* If the pointer exists in the memory map then resize it, otherwise simply add it */
-    if (node != NULL) {
+    if (node != NULL)
+    {
         /* Attempt to allocate the new pointer */
         if ((temp = realloc(ptr, size)) == NULL)
             FailMem("ERROR: No more memory available for allocation", -1);
@@ -143,14 +141,15 @@ void * ResizeMem(void * ptr, size_t size) {
         /* Update the memory map to use the new pointer and then return it */
         node->value = temp;
         return node->value;
-    } else {
-        return NewMem(size);
     }
+    else
+        return NewMem(size);
 }
 
 /* Releases and removes a pointer from the memory map */
 /* Param (ptr) void *: The pointer to be released and removed */
-void RemoveMem(void * ptr) {
+void RemoveMem(void * ptr)
+{
     uint64_t index;
 
     /*Determine the pointers specific position in the map and remove it if it exists */
@@ -160,7 +159,8 @@ void RemoveMem(void * ptr) {
 
 /* Releases, removes, and nulls a pointer from the memory map */
 /* Param (ptr) void **: A pointer to the address to be released, removed, and nulled */
-void NilMem(void ** ptr) {
+void NilMem(void ** ptr)
+{
     /* We can't dereference a NULL pointer so we just return */
     if (ptr == NULL)
         return;
@@ -172,18 +172,21 @@ void NilMem(void ** ptr) {
 
 /* Releases and removes all memory in the memory map */
 /* Note the memory map itself and its values array will still be allocated */
-void ClearMem() {
+void ClearMem()
+{
     uint64_t i;
 
     /* Remove all the memory in use by the memory map */
-    for (i = 0; i < mem->size; i++) {
+    for (i = 0; i < mem->size; i++)
+    {
         EndNode(mem->values[i]);
         mem->values[i] = NULL;
     }
 }
 
 /* Releases and removes all memory in the memory map and releases the memory map itself and its values array */
-void EndMem() {
+void EndMem()
+{
     /* Remove all the memory in use by the memory map and then release the map itself */
     ClearMem();
     free(mem->values);
@@ -197,7 +200,8 @@ void EndMem() {
 static void HandleMem(int sig)
 {
     /* Print an error message and release all memory in the memory map when a signal is handled */
-    switch (sig) {
+    switch (sig)
+    {
         case SIGSEGV:
             FailMem("ERROR: segmentation fault encountered\n", SIGSEGV);
             break;
@@ -210,7 +214,8 @@ static void HandleMem(int sig)
 }
 
 /* Increases the size of the memory map values array and copies all the old pointers to the new map */
-static void PlusMem() {
+static void PlusMem()
+{
     MemNode ** temp, * next, * node;
     uint64_t capacity, mask, index, i;
 
@@ -227,10 +232,12 @@ static void PlusMem() {
         temp[i] = NULL;
 
     /* Copy every memory node from the old array to the new one */
-    for (i = 0; i < mem->size; ++i) {
+    for (i = 0; i < mem->size; ++i)
+    {
         node = mem->values[i];
 
-        while (node != NULL) {
+        while (node != NULL)
+        {
             next = node->next;
             index = (uintptr_t)(node->value) & mask;
             node->next = temp[index];
@@ -249,14 +256,16 @@ static void PlusMem() {
 /* Tries to find the encompassing memory node for a pointer in the memory map */
 /* Param1 void *: The pointer to find */
 /* Returns: The encompassing memory node for the pointer in the memory map, or NULL if the pointer wasn't found */
-static MemNode * FindMem(void * ptr) {
+static MemNode * FindMem(void * ptr)
+{
     MemNode * node;
     uint64_t index = (uintptr_t)ptr & (mem->size - 1);
 
     node = mem->values[index];
 
     /* Try to find the pointer in the node list */
-    while (node != NULL) {
+    while (node != NULL)
+    {
         /* Return the node if the pointer was found */
         if (node->value == ptr)
             return node;
@@ -271,7 +280,8 @@ static MemNode * FindMem(void * ptr) {
 /* Prints an error message, releases all memory, and exits the program upon a memory failure */
 /* Param (message) char *: The message to print */
 /* Param (code) int: The error code */
-static void FailMem(char * message, int code) {
+static void FailMem(char * message, int code)
+{
     /* Upon some failure, print an error message, release all memory in the memory map, and then exit with a failure code */
     fprintf(stderr, "%s (%d)\n", message, code);
     EndMem();
@@ -280,11 +290,13 @@ static void FailMem(char * message, int code) {
 
 /* Releases all memory used by a memory node */
 /* Param (node) MemNode *: The node to be released */
-static void EndNode(MemNode * node) {
+static void EndNode(MemNode * node)
+{
     MemNode * next, * temp = node;
 
     /* Release all memory used by a memory node */
-    while (temp != NULL) {
+    while (temp != NULL)
+    {
         next = temp->next;
         free(temp->value);
         free(temp);
@@ -296,7 +308,8 @@ static void EndNode(MemNode * node) {
 /* Releases a specific pointer from a memory node */
 /* Param (node) MemNode *: The memory node to search in */
 /* Param (ptr) void *: The pointer to search for and release if found, the encompassing node is released from the list as well */
-static MemNode * RemoveNode(MemNode * node, void * ptr) {
+static MemNode * RemoveNode(MemNode * node, void * ptr)
+{
     MemNode * prev, * temp;
 
     /* Nothing can be removed from a NULL memory node */
@@ -304,25 +317,29 @@ static MemNode * RemoveNode(MemNode * node, void * ptr) {
         return NULL;
 
     /* Handle the case where there's only one pointer in the node */
-    if (node->next == NULL) {
+    if (node->next == NULL)
+    {
         /* If the pointer matches the one in the node then release it and return NULL, otherwise simply return the unmodified node */
-        if (node->value == ptr) {
+        if (node->value == ptr)
+        {
             free(node->value);
             free(node);
             --(mem->count);
             return NULL;
-        } else {
-            return node;
         }
+        else
+            return node;
     }
 
     prev = node->next;
     temp = prev->next;
 
     /* Try and find the pointer in the node */
-    while (temp != NULL) {
+    while (temp != NULL)
+    {
         /* If we find a matching pointer then release it and return the updated node */
-        if (temp->value == ptr) {
+        if (temp->value == ptr)
+        {
             prev->next = temp->next;
             free(temp->value);
             free(temp);

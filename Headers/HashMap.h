@@ -11,7 +11,8 @@
 #endif
 
 /* The linked list structure used to implement seperate chaining in the memory map */
-typedef struct MapNode {
+typedef struct MapNode
+{
     /* The node's hash value */
     uint64_t hash;
     /* The node's key (all keys are strings) */
@@ -23,7 +24,8 @@ typedef struct MapNode {
 } MapNode;
 
 /* The map structure that stores all the linked key value pairs and meta data */
-typedef struct HashMap {
+typedef struct HashMap
+{
     /* The array of nodes that store all key value pairs, collisions are handled with seperate chaining */
     MapNode ** nodes;
     /* The current number of nodes in the map */
