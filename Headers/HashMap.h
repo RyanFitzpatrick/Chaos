@@ -4,17 +4,19 @@
 #ifndef _CH_HASHMAP_
 #define _CH_HASHMAP_
 
-/* HashMap.h requires the uint64_t type defined in stdint.h */
+/* HashMap.h requires the uint32_t type defined in stdint.h */
 #ifndef _STDINT_
 #define _STDINT_
 #include <stdint.h>
 #endif
 
+#define NUM_PRIMES 30
+
 /* The linked list structure used to implement seperate chaining in the memory map */
 typedef struct MapNode
 {
     /* The node's hash value */
-    uint64_t hash;
+    uint32_t hash;
     /* The node's key (all keys are strings) */
     char * key;
     /* The node's value */
@@ -29,17 +31,17 @@ typedef struct HashMap
     /* The array of nodes that store all key value pairs, collisions are handled with seperate chaining */
     MapNode ** nodes;
     /* The current number of nodes in the map */
-    uint64_t count;
+    uint32_t count;
     /* The total length of the memory map's values array */
-    uint64_t size;
+    uint32_t size;
     /* The maximum number of nodes allowed in the map before the array needs to be expanded */
-    uint64_t max;
+    uint32_t max;
 } HashMap;
 
 /* Initalizes the HashMap and its meta data, must be called before using the HashMap */
-/* Param1 uint64_t: Initial size parameter, the smallest power of 2 that is also equal to or larger than nwill be the map's size */
+/* Param1 uint32_t: Initial size parameter, a prime number that is equal to or larger than n will be the map's size */
 /* Returns: A newly allocated HashMap */
-HashMap * BuildMap(uint64_t);
+HashMap * BuildMap(uint32_t);
 
 /* Adds a key value pair to the map */
 /* Param1 HashMap *: The map to be added to */

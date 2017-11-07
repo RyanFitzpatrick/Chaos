@@ -5,8 +5,16 @@
 #include "Memory.h"
 #include <string.h>
 
-/* Doubles the capacity of a map and then moves the ndes from the old array to the new array */
-/* Param1 HashMap *: The map to be increeased in capacity */
+static uint32_t primes[NUM_PRIMES] =
+{
+    2, 5, 11, 23, 47, 97, 197, 397, 797, 1597, 3203, 6421, 12853, 25717,
+    51437, 102877, 205759, 411527, 823117, 1646237, 3292489,
+    6584983, 13169977, 26339969, 52679987, 105359983,
+    210719983, 421439981, 842879963, 1685759983
+};
+
+/* Increases the capacity of a map and then moves the nodes from the old array to the new array */
+/* Param1 HashMap *: The map who's capacity is to be increased */
 static void PlusMap(HashMap *);
 
 /* Removes all nodes and memory used in a node list, updating the encompassing map's count as it does so */
@@ -22,38 +30,44 @@ static MapNode * RemoveNode(HashMap *, MapNode *, char *);
 
 /* Hashes a string using a prime based function */
 /* Param1 char *: The string to be hashed */
-static uint64_t hash(char *);
+/* A 32-bit hash value for a string */
+static uint32_t hash(char *);
 
 /* Initalizes the HashMap and its meta data, must be called before using the HashMap */
-/* Param (n) uint64_t: Initial size parameter, the smallest power of 2 that is also equal to or larger than nwill be the map's size */
+/* Param (n) uint32_t: Initial size parameter, the smallest number in primes that is also equal to or larger than n will be the map's size */
 /* Returns: A newly allocated HashMap */
-HashMap * BuildMap(uint64_t n)
+HashMap * BuildMap(uint32_t n)
 {
-    HashMap * map;
-    uint64_t size = 1, i;
+    HashMap * map = NULL;
+    uint32_t size = 0, i;
 
     /* Return NULL if size is specified as 0 */
     if (n == 0)
         return NULL;
 
-    /* Determine the smallest power of 2 that is equal to or larger than n, this will be our initial size */
-    while (size < n)
-        size <<= 1;
+    /* Determine the smallest number in primes that is equal to or larger than n, this will be our initial size */
+    while (primes[size++] < n);
 
     /* Initalize the map and its node array */
-    map = NewMem(sizeof(HashMap));
-    map->nodes = NewMem(sizeof(MapNode *) * size);
+    NewMem(map, sizeof(HashMap));
+    NewMem(map->nodes, sizeof(MapNode *) * primes[size]);
 
     /* Set initial metadata values */
     map->count = 0;
     map->size = size;
-    map->max = (size * 3) >> 2;
+    map->max = (primes[size] * 3) >> 2;
 
     /* Initialize the array nodes to NULL */
-    for (i = 0; i < size; ++i)
+    for (i = 0; i < primes[size]; ++i)
         map->nodes[i] = NULL;
 
     return map;
+
+    FAIL:
+        /* Free any allocated memory and return NULL on error */
+        if (map != NULL) DiscardMem(map->nodes);
+        DiscardMem(map);
+        return NULL;
 }
 
 /* Adds a key value pair to the map */
@@ -62,28 +76,33 @@ HashMap * BuildMap(uint64_t n)
 /* Param (value) void *: The value to add to the map */
 void PushToMap(HashMap * map, char * key, void * value)
 {
-    MapNode * node;
-    uint64_t code, index;
+    MapNode * node = NULL;
+    uint32_t code, index;
 
     /* If the map has reached its maximum size, increase the node array capacity */
-    if (map->count == map->max)
+    if (map->count >= map->max)
         PlusMap(map);
 
     /* Hash the key */
     code = hash(key);
-    index = code & (map->size - 1);
+    index = code % primes[map->size];
 
     /* Create a new node using the hash, key, and value */
-    node = NewMem(sizeof(MapNode));
+    NewMem(node, sizeof(MapNode));
     node->next = map->nodes[index];
     node->hash = code;
     node->value = value;
-    node->key = NewMem(sizeof(char) * (strlen(key) + 1));
+    NewMem(node->key, sizeof(char) * (strlen(key) + 1));
     strcpy(node->key, key);
 
      /* Add the node to the map and increment the node count */
     map->nodes[index] = node;
     ++(map->count);
+
+    FAIL:
+        /* Free any allocated memory and return NULL on error */
+        if (node != NULL) DiscardMem(node->key);
+        DiscardMem(node);
 }
 
 /* Attempts to find a value in the map given some key */
@@ -93,10 +112,10 @@ void PushToMap(HashMap * map, char * key, void * value)
 void * SearchMap(HashMap * map, char * key)
 {
     MapNode * node;
-    uint64_t index;
+    uint32_t index;
 
     /* Hash the key */
-    index = hash(key) & (map->size - 1);
+    index = hash(key) % primes[map->size];
     node = map->nodes[index];
 
     /* Try and find a matching node in the node list at the specific position in the array */
@@ -118,10 +137,10 @@ void * SearchMap(HashMap * map, char * key)
 /* Param (key) char *: The string key to be hashed and used to find the value in the map */
 void RemoveFromMap(HashMap * map, char * key)
 {
-    uint64_t index;
+    uint32_t index;
 
     /* Hash the key then remove the matching node from the node list at that specific position in the array */
-    index = hash(key) & (map->size - 1);
+    index = hash(key) % primes[map->size];
     map->nodes[index] = RemoveNode(map, map->nodes[index], key);
 }
 
@@ -129,10 +148,10 @@ void RemoveFromMap(HashMap * map, char * key)
 /* Param (map) HashMap *: The map to be cleared */
 void ClearMap(HashMap * map)
 {
-    uint64_t i;
+    uint32_t i;
 
     /* Clear all node lists in the array */
-    for (i = 0; i < map->size; i++)
+    for (i = 0; i < primes[map->size]; i++)
     {
         EndNode(map, map->nodes[i]);
         map->nodes[i] = NULL;
@@ -145,35 +164,34 @@ void EndMap(HashMap * map)
 {
     /* Clear the array then release the memory used by the array and the map itself */
     ClearMap(map);
-    RemoveMem(map->nodes);
-    RemoveMem(map);
+    DiscardMem(map->nodes);
+    DiscardMem(map);
 }
 
 /* Doubles the capacity of a map and then moves the ndes from the old array to the new array */
 /* Param1 HashMap *: The map to be increeased in capacity */
 static void PlusMap(HashMap * map)
 {
-    MapNode ** temp, * next, * node;
-    uint64_t capacity, mask, index, i;
+    MapNode ** temp = NULL, * next, * node;
+    uint32_t size, index, i;
 
     /* Allocate the new node array to be twice the size of the current array */
-    capacity = map->size << 1;
-    mask = capacity - 1;
-    temp = NewMem(sizeof(MapNode *) * capacity);
+    size = primes[map->size + 1];
+    NewMem(temp, sizeof(MapNode *) * size);
 
     /* Initalize the new node array */
-    for (i = 0; i < capacity; ++i)
+    for (i = 0; i < size; ++i)
         temp[i] = NULL;
 
     /* Loop through the old array, moving each node in each node list to the new array */
-    for (i = 0; i < map->size; ++i)
+    for (i = 0; i < primes[map->size]; ++i)
     {
         node = map->nodes[i];
 
         /* Move every node in the node list to the new array using its previously computed hash */
         while (node != NULL)
         {
-            index = node->hash & mask;
+            index = node->hash % size;
             next = node->next;
             node->next = temp[index];
             temp[index] = node;
@@ -182,10 +200,13 @@ static void PlusMap(HashMap * map)
     }
 
     /* Release the memory used by the old array and update the map's metadata */
-    RemoveMem(map->nodes);
+    DiscardMem(map->nodes);
     map->nodes = temp;
-    map->size = capacity;
-    map->max = (capacity * 3) >> 2;
+    map->max = (++(map->size) * 3) >> 2;
+
+    FAIL:
+        /* Free any allocated memory and return NULL on error */
+        DiscardMem(temp);
 }
 
 /* Removes all nodes and memory used in a node list, updating the encompassing map's count as it does so */
@@ -199,8 +220,8 @@ static void EndNode(HashMap * map, MapNode * node)
     while (temp != NULL)
     {
         next = temp->next;
-        RemoveMem(temp->value);
-        RemoveMem(temp);
+        DiscardMem(temp->value);
+        DiscardMem(temp);
         --(map->count);
         temp = next;
     }
@@ -224,8 +245,8 @@ static MapNode * RemoveNode(HashMap * map, MapNode * node, char * key)
         /* If the node is a match then remove it, decrement the map's node count, and return NULL, otherwise return the unmodified node */
         if (strcmp(node->value, key) == 0)
         {
-            RemoveMem(node->value);
-            RemoveMem(node);
+            DiscardMem(node->value);
+            DiscardMem(node);
             --(map->count);
             return NULL;
         }
@@ -243,8 +264,8 @@ static MapNode * RemoveNode(HashMap * map, MapNode * node, char * key)
         if (strcmp(temp->value, key) == 0)
         {
             prev->next = temp->next;
-            RemoveMem(temp->value);
-            RemoveMem(temp);
+            DiscardMem(temp->value);
+            DiscardMem(temp);
             --(map->count);
             return node;
         }
@@ -259,17 +280,17 @@ static MapNode * RemoveNode(HashMap * map, MapNode * node, char * key)
 
 /* Hashes a string using a prime based function */
 /* Param1 char *: The string to be hashed */
-uint64_t hash(char * key)
+/* A 32-bit hash value for a string */
+uint32_t hash(char * key)
 {
-    int hash = 7, i = 0;
-
-    /* If the key is NULL return the default hash of 0 */
-    if (key == NULL)
-        return 0;
+    uint32_t hash = 2166136261;
 
     /* Compute the hash value using the following funtion */
-    while (key[i++] != '\0')
-        hash = (hash * 31) + key[i];
+    while (*key != '\0')
+    {
+        hash ^= *key++;
+        hash *= 16777619;
+    }
 
     return hash;
 }

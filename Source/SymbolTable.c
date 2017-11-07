@@ -8,13 +8,19 @@
 SymbolTable * BuildSymbolTable()
 {
     /* Allocate memory for the SymbolTable */
-    SymbolTable * st = NewMem(sizeof(SymbolTable));
+    SymbolTable * st = NULL;
+    NewMem(st, sizeof(SymbolTable));
 
     /* Initialize the SymbolTable information */
     st->values = BuildMap(1024);
     st->next = NULL;
 
     return st;
+
+    FAIL:
+        /* Free any allocated memory and return NULL on error */
+        DiscardMem(st);
+        return NULL;
 }
 
 /* Releases all memory used by a SymbolTable */
@@ -27,5 +33,5 @@ void EndSymbolTable(SymbolTable * st)
 
     /* Release all memory used by the SymbolTable and then release the SymbolTable itself */
     EndMap(st->values);
-    RemoveMem(st);
+    DiscardMem(st);
 }

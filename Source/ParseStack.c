@@ -8,13 +8,19 @@
 ParseStack * BuildParseStack()
 {
     /* Allocate memory for the ParseStack */
-    ParseStack * stack = NewMem(sizeof(ParseStack));
+    ParseStack * stack = NULL;
+    NewMem(stack, sizeof(ParseStack));
 
     /* Initialize the ParseStack information */
     stack->node = NULL;
     stack->next = NULL;
 
     return stack;
+
+    FAIL:
+        /* Free any allocated memory and return NULL on error */
+        DiscardMem(stack);
+        return NULL;
 }
 
 /* Releases all memory used by a ParseStack */
@@ -28,5 +34,5 @@ void EndParseStack(ParseStack * stack)
     /* Release all memory used by the ParseStack and then release the ParseStack itself */
     EndParseTree(stack->node);
     EndParseStack(stack->next);
-    RemoveMem(stack);
+    DiscardMem(stack);
 }

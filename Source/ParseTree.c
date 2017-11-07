@@ -9,7 +9,8 @@
 ParseTree * BuildParseTree(Symbol * symbol)
 {
     /* Allocate memory for the ParseTree */
-    ParseTree * tree = NewMem(sizeof(ParseTree));
+    ParseTree * tree = NULL;
+    NewMem(tree, sizeof(ParseTree));
 
     /* Initialize the ParseTree information */
     tree->symbol = symbol;
@@ -18,6 +19,11 @@ ParseTree * BuildParseTree(Symbol * symbol)
     tree->right = NULL;
 
     return tree;
+
+    FAIL:
+        /* Free any allocated memory and return NULL on error */
+        DiscardMem(tree);
+        return NULL;
 }
 
 /* Releases all memory used by a ParseTree */
@@ -33,5 +39,5 @@ void EndParseTree(ParseTree * tree)
     EndParseTree(tree->left);
     EndParseTree(tree->center);
     EndParseTree(tree->right);
-    RemoveMem(tree);
+    DiscardMem(tree);
 }

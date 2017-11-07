@@ -13,16 +13,23 @@
 Symbol * BuildSymbol(char * name, Type * type, Mod mod, Token token)
 {
     /* Allocate memory for the Symbol */
-    Symbol * symbol = NewMem(sizeof(Symbol));
+    Symbol * symbol = NULL;
+    NewMem(symbol, sizeof(Symbol));
 
     /* Initialize the Symbol information */
     symbol->token = token;
     symbol->mod = mod;
     symbol->type = type;
-    symbol->name = NewMem(sizeof(char) * (strlen(name) + 1));
+    NewMem(symbol->name, sizeof(char) * (strlen(name) + 1));
     strcpy(symbol->name, name);
 
     return symbol;
+
+    FAIL:
+        /* Free any allocated memory and return NULL on error */
+        if (symbol != NULL) DiscardMem(symbol->name);
+        DiscardMem(symbol);
+        return NULL;
 }
 
 /* Releases all memory used by a Symbol */
@@ -35,6 +42,6 @@ void EndSymbol(Symbol * symbol)
 
     /* Release all memory used by the Symbol and then release the Symbol itself */
     EndType(symbol->type);
-    RemoveMem(symbol->name);
-    RemoveMem(symbol);
+    DiscardMem(symbol->name);
+    DiscardMem(symbol);
 }
