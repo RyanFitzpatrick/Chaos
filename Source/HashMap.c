@@ -5,6 +5,7 @@
 #include "Memory.h"
 #include <string.h>
 
+/* A static array of prime numbers used as sizes for the HashMap */
 static uint32_t primes[NUM_PRIMES] =
 {
     2, 5, 11, 23, 47, 97, 197, 397, 797, 1597, 3203, 6421, 12853, 25717,
@@ -39,14 +40,14 @@ static uint32_t hash(char *);
 HashMap * BuildMap(uint32_t n)
 {
     HashMap * map = NULL;
-    uint32_t size = 0, i;
+    uint32_t size = -1, i;
 
     /* Return NULL if size is specified as 0 */
     if (n == 0)
         return NULL;
 
     /* Determine the smallest number in primes that is equal to or larger than n, this will be our initial size */
-    while (primes[size++] < n);
+    while (primes[++size] < n);
 
     /* Initalize the map and its node array */
     NewMem(map, sizeof(HashMap));
@@ -79,8 +80,8 @@ void PushToMap(HashMap * map, char * key, void * value)
     MapNode * node = NULL;
     uint32_t code, index;
 
-    /* If the map has reached its maximum size, increase the node array capacity */
-    if (map->count >= map->max)
+    /* If the map has reached its maximum size, increase the node array capacity if possible */
+    if (map->count >= map->max && map->size < NUM_PRIMES)
         PlusMap(map);
 
     /* Hash the key */
@@ -98,6 +99,7 @@ void PushToMap(HashMap * map, char * key, void * value)
      /* Add the node to the map and increment the node count */
     map->nodes[index] = node;
     ++(map->count);
+    return;
 
     FAIL:
         /* Free any allocated memory and return NULL on error */
@@ -202,7 +204,8 @@ static void PlusMap(HashMap * map)
     /* Release the memory used by the old array and update the map's metadata */
     DiscardMem(map->nodes);
     map->nodes = temp;
-    map->max = (++(map->size) * 3) >> 2;
+    map->max = (primes[++(map->size)] * 3) >> 2;
+    return;
 
     FAIL:
         /* Free any allocated memory and return NULL on error */
@@ -221,6 +224,7 @@ static void EndNode(HashMap * map, MapNode * node)
     {
         next = temp->next;
         DiscardMem(temp->value);
+        DiscardMem(temp->key);
         DiscardMem(temp);
         --(map->count);
         temp = next;
@@ -246,6 +250,7 @@ static MapNode * RemoveNode(HashMap * map, MapNode * node, char * key)
         if (strcmp(node->value, key) == 0)
         {
             DiscardMem(node->value);
+            DiscardMem(node->key);
             DiscardMem(node);
             --(map->count);
             return NULL;
@@ -265,6 +270,7 @@ static MapNode * RemoveNode(HashMap * map, MapNode * node, char * key)
         {
             prev->next = temp->next;
             DiscardMem(temp->value);
+            DiscardMem(node->key);
             DiscardMem(temp);
             --(map->count);
             return node;
