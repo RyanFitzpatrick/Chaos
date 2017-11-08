@@ -1,5 +1,5 @@
 /* HashMap.c: Implements various functions defined in HashMap.h */
-/* Also defines and implements various static functions to help with speicifc tasks */
+/* Also defines and implements various static functions to help with specific tasks */
 
 #include "HashMap.h"
 #include "Memory.h"
