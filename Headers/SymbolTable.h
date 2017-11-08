@@ -17,11 +17,16 @@ typedef struct SymbolTable
 } SymbolTable;
 
 /* Initializes a SymbolTable */
+/* NOTE: It's recommended to use the BuildSymbolTable macro instead of calling this directly */
 /* Returns: A newly allocated SymbolTable */
-SymbolTable * BuildSymbolTable();
+SymbolTable * _BuildSymbolTable();
 
 /* Releases all memory used by a SymbolTable */
 /* Param1 SymbolTable *: The SymbolTable to be released */
 void EndSymbolTable(SymbolTable *);
+
+/* Calls the _BuildSymbolTable function and then jumps to the FAIL label on error */
+/* This is the recommend way to Build a SymbolTable */
+#define BuildSymbolTable(st) if ((st = _BuildSymbolTable()) == NULL) goto FAIL
 
 #endif

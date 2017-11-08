@@ -23,15 +23,20 @@ typedef struct Symbol
 } Symbol;
 
 /* Initializes a Symbol with the given information */
+/* NOTE: It's recommended to use the BuildSymbol macro instead of calling this directly */
 /* Param1 char *: The name of the Symbol */
 /* Param2 Type *: The underlying Type of the Symbol */
 /* Param3 Mod: The modiier applied to the Symbol */
 /* Param4 Token: The Token defining the Symbol */
 /* Returns: A newly allocated Symbol containing the information passed into the function */
-Symbol * BuildSymbol(char *, Type *, Mod, Token);
+Symbol * _BuildSymbol(char *, Type *, Mod, Token);
 
 /* Releases all memory used by a Symbol */
 /* Param1 Symbol *: The Symbol to be released */
 void EndSymbol(Symbol *);
+
+/* Calls the _BuildSymbol function and then jumps to the FAIL label on error */
+/* This is the recommend way to Build a Symbol */
+#define BuildSymbol(symbol, name, type, mod, token) if ((symbol = _BuildSymbol(name, type, mode, token)) == NULL) goto FAIL
 
 #endif

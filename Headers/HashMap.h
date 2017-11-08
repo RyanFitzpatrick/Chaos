@@ -39,15 +39,17 @@ typedef struct HashMap
 } HashMap;
 
 /* Initalizes the HashMap and its meta data, must be called before using the HashMap */
+/* NOTE: It's recommended to use the BuildMap macro instead of calling this directly */
 /* Param1 uint32_t: Initial size parameter, a prime number that is equal to or larger than n will be the map's size */
 /* Returns: A newly allocated HashMap */
-HashMap * BuildMap(uint32_t);
+HashMap * _BuildMap(uint32_t);
 
 /* Adds a key value pair to the map */
+/* NOTE: It's recommended to use the PushToMap macro instead of calling this directly */
 /* Param1 HashMap *: The map to be added to */
 /* Param2 char *: The string key to be hashed and used to identify the key value pair in the map */
 /* Param3 void *: The value to add to the map */
-void PushToMap(HashMap *, char *, void *);
+int _PushToMap(HashMap *, char *, void *);
 
 /* Attempts to find a value in the map given some key */
 /* Param1 HashMap *: The map to be searched */
@@ -67,5 +69,13 @@ void ClearMap(HashMap *);
 /* Clears and removes the map from memory */
 /* Param1 HashMap *: The map to be ended */
 void EndMap(HashMap *);
+
+/* Calls the _BuildMap function and then jumps to the FAIL label on error */
+/* This is the recommend way to Build a HashMap */
+#define BuildMap(map, size) if ((map = _BuildMap(size)) == NULL) goto FAIL
+
+/* Calls the _PushToMap function and then jumps to the FAIL label on error */
+/* This is the recommend way to push a value to a HashMap */
+#define PushToMap(map, key, value) if (!_PushToMap(map, key, value)) goto FAIL
 
 #endif

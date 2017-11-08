@@ -4,8 +4,9 @@
 #include "Memory.h"
 
 /* Initializes an empty ParseStack */
+/* NOTE: It's recommended to use the BuildParseStack macro instead of calling this directly */
 /* Returns: A newly allocated ParseStack */
-ParseStack * BuildParseStack()
+ParseStack * _BuildParseStack()
 {
     /* Allocate memory for the ParseStack */
     ParseStack * stack = NULL;

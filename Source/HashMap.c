@@ -35,9 +35,10 @@ static MapNode * RemoveNode(HashMap *, MapNode *, char *);
 static uint32_t hash(char *);
 
 /* Initalizes the HashMap and its meta data, must be called before using the HashMap */
+/* NOTE: It's recommended to use the BuildMap macro instead of calling this directly */
 /* Param (n) uint32_t: Initial size parameter, the smallest number in primes that is also equal to or larger than n will be the map's size */
 /* Returns: A newly allocated HashMap */
-HashMap * BuildMap(uint32_t n)
+HashMap * _BuildMap(uint32_t n)
 {
     HashMap * map = NULL;
     uint32_t size = -1, i;
@@ -72,10 +73,11 @@ HashMap * BuildMap(uint32_t n)
 }
 
 /* Adds a key value pair to the map */
+/* NOTE: It's recommended to use the PushToMap macro instead of calling this directly */
 /* Param (map) HashMap *: The map to be added to */
 /* Param (key) char *: The string key to be hashed and used to identify the key value pair in the map */
 /* Param (value) void *: The value to add to the map */
-void PushToMap(HashMap * map, char * key, void * value)
+int _PushToMap(HashMap * map, char * key, void * value)
 {
     MapNode * node = NULL;
     uint32_t code, index;
@@ -99,12 +101,13 @@ void PushToMap(HashMap * map, char * key, void * value)
      /* Add the node to the map and increment the node count */
     map->nodes[index] = node;
     ++(map->count);
-    return;
+    return 1;
 
     FAIL:
-        /* Free any allocated memory and return NULL on error */
+        /* Free any allocated memory and return -1 on error */
         if (node != NULL) DiscardMem(node->key);
         DiscardMem(node);
+        return 0;
 }
 
 /* Attempts to find a value in the map given some key */
@@ -208,7 +211,7 @@ static void PlusMap(HashMap * map)
     return;
 
     FAIL:
-        /* Free any allocated memory and return NULL on error */
+        /* Free any allocated memory and return on error */
         DiscardMem(temp);
 }
 

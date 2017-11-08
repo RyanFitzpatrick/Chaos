@@ -9,7 +9,7 @@ int main()
     HashMap * map = NULL;
     int * ptr = NULL, i;
 
-    map = BuildMap(1024);
+   BuildMap(map, 1024);
 
     for (i = 0; i < SIZE; ++i)
     {
@@ -24,6 +24,7 @@ int main()
     return 0;
 
     FAIL:
+        printf("Fail\n");
         DiscardMem(map);
         DiscardMem(ptr);
 

@@ -19,12 +19,17 @@ typedef struct ParseTree
 } ParseTree;
 
 /* Initializes a ParseTree node with the given Symbol */
+/* NOTE: It's recommended to use the BuildParseTree macro instead of calling this directly */
 /* Param1 Symbol *: The Symbol representing the ParseTree node */
 /* Returns: A newly allocated ParseTree node */
-ParseTree * BuildParseTree(Symbol *);
+ParseTree * _BuildParseTree(Symbol *);
 
 /* Releases all memory used by a ParseTree */
 /* Param1 ParseTree *: The ParseTree to be released */
 void EndParseTree(ParseTree *);
+
+/* Calls the _BuildParseTree function and then jumps to the FAIL label on error */
+/* This is the recommend way to Build a ParseTree */
+#define BuildParseTree(tree, symbol) if ((tree = _BuildParseTree(symbol)) == NULL) goto FAIL
 
 #endif

@@ -4,9 +4,10 @@
 #include "Memory.h"
 
 /* Initializes a ParseTree node with the given Symbol */
+/* NOTE: It's recommended to use the BuildParseTree macro instead of calling this directly */
 /* Param (symbol) Symbol *: The Symbol representing the ParseTree node */
 /* Returns: A newly allocated ParseTree node */
-ParseTree * BuildParseTree(Symbol * symbol)
+ParseTree * _BuildParseTree(Symbol * symbol)
 {
     /* Allocate memory for the ParseTree */
     ParseTree * tree = NULL;

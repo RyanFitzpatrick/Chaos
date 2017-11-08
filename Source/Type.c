@@ -5,18 +5,19 @@
 #include <string.h>
 
 /* Initializes a Type structure */
+/* NOTE: It's recommended to use the BuildType macro instead of calling this directly */
 /* Param (name) char *: The name of the Type */
 /* Param (parent) Type *: The Type's parent, use NULL if the Type has no parent */
 /* Returns: A newly allocated Type structure containing the information passed into the function */
-Type * BuildType(char * name, Type * parent)
+Type * _BuildType(char * name, Type * parent)
 {
     /* Allocate memory for the Type structure */
     Type * type = NULL;
     NewMem(type, sizeof(Type));
 
     /* Initialize the Type information */
-    type->fields = BuildMap(32);
     type->parent = parent;
+    BuildMap(type->fields, 32);
     NewMem(type->name, sizeof(char) * (strlen(name) + 1));
     strcpy(type->name, name);
 

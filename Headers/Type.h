@@ -19,13 +19,18 @@ typedef struct Type
 } Type;
 
 /* Initializes a Type structure */
+/* NOTE: It's recommended to use the BuildType macro instead of calling this directly */
 /* Param1 char *: The name of the Type */
 /* Param2 Type *: The Type's parent, use NULL if the Type has no parent */
 /* Returns: A newly allocated Type structure containing the information passed into the function */
-Type * BuildType(char *, Type *);
+Type * _BuildType(char *, Type *);
 
 /* Releases all memory used by a Type structure */
 /* Param1 Type *: The Type to be released */
 void EndType(Type *);
+
+/* Calls the _BuildType function and then jumps to the FAIL label on error */
+/* This is the recommend way to Build a Type */
+#define BuildType(type, name, parent) if ((type = _BuildType(name, parent)) == NULL) goto FAIL
 
 #endif

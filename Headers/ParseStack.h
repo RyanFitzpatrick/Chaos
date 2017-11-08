@@ -17,11 +17,16 @@ typedef struct ParseStack
 } ParseStack;
 
 /* Initializes an empty ParseStack */
+/* NOTE: It's recommended to use the BuildParseStack macro instead of calling this directly */
 /* Returns: A newly allocated ParseStack */
-ParseStack * BuildParseStack();
+ParseStack * _BuildParseStack();
 
 /* Releases all memory used by a ParseStack */
 /* Param1 ParseStack *: The ParseStack to be released */
 void EndParseStack(ParseStack *);
+
+/* Calls the _BuildParseStack function and then jumps to the FAIL label on error */
+/* This is the recommend way to Build a ParseStack */
+#define BuildParseStack(stack) if ((stack = _BuildParseStack()) == NULL) goto FAIL
 
 #endif

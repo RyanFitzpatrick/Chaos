@@ -5,12 +5,13 @@
 #include <string.h>
 
 /* Initializes a Symbol with the given information */
+/* NOTE: It's recommended to use the BuildSymbol macro instead of calling this directly */
 /* Param (name) char *: The name of the Symbol */
 /* Param (type) Type *: The underlying Type of the Symbol */
 /* Param (mod) Mod: The modiier applied to the Symbol */
 /* Param (token) Token: The Token defining the Symbol */
 /* Returns: A newly allocated Symbol containing the information passed into the function */
-Symbol * BuildSymbol(char * name, Type * type, Mod mod, Token token)
+Symbol * _BuildSymbol(char * name, Type * type, Mod mod, Token token)
 {
     /* Allocate memory for the Symbol */
     Symbol * symbol = NULL;
