@@ -24,7 +24,7 @@ static void PlusMap(HashMap *);
 static void EndNode(HashMap *, MapNode *);
 
 /* Removes a specific node from a node list, updating the encompassing map's count as it does so */
-/* Param1 HashMap *: Th encompassing map for the node list */
+/* Param1 HashMap *: The encompassing map for the node list */
 /* Param2 MapNode *: The node list to search */
 /* Param3 char *: The key used to find a matching node in the list */
 static MapNode * RemoveNode(HashMap *, MapNode *, char *);
@@ -180,7 +180,7 @@ static void PlusMap(HashMap * map)
     MapNode ** temp = NULL, * next, * node;
     uint32_t size, index, i;
 
-    /* Allocate the new node array to be twice the size of the current array */
+    /* Allocate the new node array using the next number in primes as the size */
     size = primes[map->size + 1];
     NewMem(temp, sizeof(MapNode *) * size);
 
