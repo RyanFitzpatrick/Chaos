@@ -21,6 +21,8 @@ typedef struct ParseStack
 /* Returns: A newly allocated ParseStack */
 ParseStack * _BuildParseStack();
 
+ParseStack * _PushToStack(ParseStack *, ParseTree *);
+
 /* Releases all memory used by a ParseStack */
 /* Param1 ParseStack *: The ParseStack to be released */
 void EndParseStack(ParseStack *);

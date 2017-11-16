@@ -16,16 +16,15 @@ Type * _BuildType(char * name, Type * parent)
     NewMem(type, sizeof(Type));
 
     /* Initialize the Type information */
-    type->parent = parent;
     BuildMap(type->fields, 32);
     NewMem(type->name, sizeof(char) * (strlen(name) + 1));
     strcpy(type->name, name);
+    type->parent = parent;
 
     return type;
 
     FAIL:
         /* Free any allocated memory and return NULL on error */
-        if (type != NULL) DiscardMem(type->name);
         DiscardMem(type);
         return NULL;
 }

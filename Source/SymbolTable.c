@@ -19,8 +19,7 @@ SymbolTable * _BuildSymbolTable()
     return st;
 
     FAIL:
-        /* Free any allocated memory and return NULL on error */
-        DiscardMem(st);
+        /* Return NULL on error */
         return NULL;
 }
 

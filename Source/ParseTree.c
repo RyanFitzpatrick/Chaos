@@ -22,8 +22,7 @@ ParseTree * _BuildParseTree(Symbol * symbol)
     return tree;
 
     FAIL:
-        /* Free any allocated memory and return NULL on error */
-        DiscardMem(tree);
+        /* Return NULL on error */
         return NULL;
 }
 

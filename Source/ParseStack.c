@@ -19,8 +19,28 @@ ParseStack * _BuildParseStack()
     return stack;
 
     FAIL:
-        /* Free any allocated memory and return NULL on error */
-        DiscardMem(stack);
+        /* Return NULL on error */
+        return NULL;
+}
+
+ParseStack * _PushToStack(ParseStack * stack, ParseTree * tree)
+{
+    ParseStack * head = NULL;
+
+    if (stack->node != NULL)
+    {
+        NewMem(head, sizeof(ParseStack));
+
+        head->node = tree;
+        head->next = stack;
+
+        return head;
+    }
+
+    stack->node = tree;
+    return stack;
+
+    FAIL:
         return NULL;
 }
 

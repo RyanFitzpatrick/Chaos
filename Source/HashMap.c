@@ -19,7 +19,7 @@ static uint32_t primes[NUM_PRIMES] =
 static void PlusMap(HashMap *);
 
 /* Removes all nodes and memory used in a node list, updating the encompassing map's count as it does so */
-/* Param1 HashMap *: Th encompassing map for the node list */
+/* Param1 HashMap *: The encompassing map for the node list */
 /* Param2 MapNode *: The node list to be ended */
 static void EndNode(HashMap *, MapNode *);
 
@@ -67,7 +67,6 @@ HashMap * _BuildMap(uint32_t n)
 
     FAIL:
         /* Free any allocated memory and return NULL on error */
-        if (map != NULL) DiscardMem(map->nodes);
         DiscardMem(map);
         return NULL;
 }
@@ -92,11 +91,11 @@ int _PushToMap(HashMap * map, char * key, void * value)
 
     /* Create a new node using the hash, key, and value */
     NewMem(node, sizeof(MapNode));
-    node->next = map->nodes[index];
-    node->hash = code;
-    node->value = value;
     NewMem(node->key, sizeof(char) * (strlen(key) + 1));
     strcpy(node->key, key);
+    node->value = value;
+    node->hash = code;
+    node->next = map->nodes[index];
 
      /* Add the node to the map and increment the node count */
     map->nodes[index] = node;
@@ -105,7 +104,6 @@ int _PushToMap(HashMap * map, char * key, void * value)
 
     FAIL:
         /* Free any allocated memory and return -1 on error */
-        if (node != NULL) DiscardMem(node->key);
         DiscardMem(node);
         return 0;
 }
@@ -211,12 +209,12 @@ static void PlusMap(HashMap * map)
     return;
 
     FAIL:
-        /* Free any allocated memory and return on error */
-        DiscardMem(temp);
+        /* Return on error */
+        return;
 }
 
 /* Removes all nodes and memory used in a node list, updating the encompassing map's count as it does so */
-/* Param1 HashMap *: Th encompassing map for the node list */
+/* Param1 HashMap *: The encompassing map for the node list */
 /* Param2 MapNode *: The node list to be ended */
 static void EndNode(HashMap * map, MapNode * node)
 {
@@ -235,7 +233,7 @@ static void EndNode(HashMap * map, MapNode * node)
 }
 
 /* Removes a specific node from a node list, updating the encompassing map's count as it does so */
-/* Param1 HashMap *: Th encompassing map for the node list */
+/* Param1 HashMap *: The encompassing map for the node list */
 /* Param2 MapNode *: The node list to search */
 /* Param3 char *: The key used to find a matching node in the list */
 static MapNode * RemoveNode(HashMap * map, MapNode * node, char * key)

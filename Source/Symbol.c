@@ -18,17 +18,16 @@ Symbol * _BuildSymbol(char * name, Type * type, Mod mod, Token token)
     NewMem(symbol, sizeof(Symbol));
 
     /* Initialize the Symbol information */
-    symbol->token = token;
-    symbol->mod = mod;
-    symbol->type = type;
     NewMem(symbol->name, sizeof(char) * (strlen(name) + 1));
     strcpy(symbol->name, name);
+    symbol->type = type;
+    symbol->mod = mod;
+    symbol->token = token;
 
     return symbol;
 
     FAIL:
         /* Free any allocated memory and return NULL on error */
-        if (symbol != NULL) DiscardMem(symbol->name);
         DiscardMem(symbol);
         return NULL;
 }
