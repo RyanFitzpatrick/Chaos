@@ -71,11 +71,11 @@ void ClearMap(HashMap *);
 void EndMap(HashMap *);
 
 /* Calls the _BuildMap function and then jumps to the FAIL label on error */
-/* This is the recommend way to Build a HashMap */
+/* This is the recommended way to Build a HashMap */
 #define BuildMap(map, size) if ((map = _BuildMap(size)) == NULL) goto FAIL
 
 /* Calls the _PushToMap function and then jumps to the FAIL label on error */
-/* This is the recommend way to push a value to a HashMap */
+/* This is the recommended way to push a value to a HashMap */
 #define PushToMap(map, key, value) if (!_PushToMap(map, key, value)) goto FAIL
 
 #endif

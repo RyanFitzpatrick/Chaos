@@ -9,13 +9,16 @@ Libs:
 	gcc -shared ../Clean/Libs/*.o -o ../Run/libChaos.so
 	ar rcs ../Run/libChaos.a ../Clean/Libs/*.o
 
-Build: Main HashMap ParseStack ParseTree Symbol SymbolTable Type
+Build: Main HashMap Parser ParseStack ParseTree Symbol SymbolTable Type
 
 Main:
 	gcc $(CFLAGS) ../Source/Main.c -I../Headers -o ../Clean/Main/Main.o
 
 HashMap:
 	gcc $(CFLAGS) ../Source/HashMap.c -I../Headers -o ../Clean/Main/HashMap.o
+
+Parser:
+	gcc $(CFLAGS) ../Source/Parser.c -I../Headers -o ../Clean/Main/Parser.o
 
 ParseStack:
 	gcc $(CFLAGS) ../Source/ParseStack.c -I../Headers -o ../Clean/Main/ParseStack.o

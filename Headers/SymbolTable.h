@@ -26,7 +26,7 @@ SymbolTable * _BuildSymbolTable();
 void EndSymbolTable(SymbolTable *);
 
 /* Calls the _BuildSymbolTable function and then jumps to the FAIL label on error */
-/* This is the recommend way to Build a SymbolTable */
+/* This is the recommended way to Build a SymbolTable */
 #define BuildSymbolTable(st) if ((st = _BuildSymbolTable()) == NULL) goto FAIL
 
 #endif

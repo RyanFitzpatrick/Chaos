@@ -29,7 +29,7 @@ ParseTree * _BuildParseTree(Symbol *);
 void EndParseTree(ParseTree *);
 
 /* Calls the _BuildParseTree function and then jumps to the FAIL label on error */
-/* This is the recommend way to Build a ParseTree */
+/* This is the recommended way to Build a ParseTree */
 #define BuildParseTree(tree, symbol) if ((tree = _BuildParseTree(symbol)) == NULL) goto FAIL
 
 #endif

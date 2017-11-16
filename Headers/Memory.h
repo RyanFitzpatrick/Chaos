@@ -20,13 +20,7 @@
 /* Param1 temp: A temp pointer used to hold the return value of realloc and check for any error */
 /* Param2 ptr: The pointer to be reallocated */
 /* Param2 size: The size of the memory to point at, clean up with DiscardMem */
-#define ResizeMem(temp, ptr, size) \
-{ \
-    if ((temp = realloc(ptr, size)) == NULL) \
-        goto FAIL; \
-\
-    ptr = temp \
-}
+#define ResizeMem(temp, ptr, size) { if ((temp = realloc(ptr, size)) == NULL) goto FAIL; ptr = temp; }
 
 /* Releases a pointer using free */
 /* Param1 ptr: The pointer to be released */

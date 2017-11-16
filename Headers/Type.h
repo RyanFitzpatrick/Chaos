@@ -30,7 +30,7 @@ Type * _BuildType(char *, Type *);
 void EndType(Type *);
 
 /* Calls the _BuildType function and then jumps to the FAIL label on error */
-/* This is the recommend way to Build a Type */
+/* This is the recommended way to Build a Type */
 #define BuildType(type, name, parent) if ((type = _BuildType(name, parent)) == NULL) goto FAIL
 
 #endif

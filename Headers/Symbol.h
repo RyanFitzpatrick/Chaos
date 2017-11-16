@@ -36,7 +36,7 @@ Symbol * _BuildSymbol(char *, Type *, Mod, Token);
 void EndSymbol(Symbol *);
 
 /* Calls the _BuildSymbol function and then jumps to the FAIL label on error */
-/* This is the recommend way to Build a Symbol */
+/* This is the recommended way to Build a Symbol */
 #define BuildSymbol(symbol, name, type, mod, token) if ((symbol = _BuildSymbol(name, type, mode, token)) == NULL) goto FAIL
 
 #endif

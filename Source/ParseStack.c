@@ -23,24 +23,34 @@ ParseStack * _BuildParseStack()
         return NULL;
 }
 
+/* Pushes a ParseTree node to the ParseStack */
+/* NOTE: It's recommended to use the PushToStack macro instead of calling this directly */
+/* Param (stack) ParseStack *: The ParseStack to push the node onto */
+/* Param (tree) ParseTree *: The ParseTree node to push onto the stack */
+/* Returns: The modified stack with the new node on top */
 ParseStack * _PushToStack(ParseStack * stack, ParseTree * tree)
 {
     ParseStack * head = NULL;
 
+    /* If the stack already has nodes then create a new node a push it on top of the stack */
     if (stack->node != NULL)
     {
+        /* Allocate memory for the new ParseStack node */
         NewMem(head, sizeof(ParseStack));
 
+        /* Initialize the ParseStack information and add it to the top of the stack */
         head->node = tree;
         head->next = stack;
 
         return head;
     }
 
+    /* If the stack has no nodes then add the tree to the base and return */
     stack->node = tree;
     return stack;
 
     FAIL:
+        /* Return NULL on error */
         return NULL;
 }
 
