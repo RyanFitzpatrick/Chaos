@@ -134,25 +134,25 @@ del $(IntDir)*.log</Command>
     </CustomBuildStep>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="$(SolutionDir)Source\HashMap.c" />
-    <ClCompile Include="$(SolutionDir)Source\Main.c" />
-    <ClCompile Include="$(SolutionDir)Source\Parser.c" />
-    <ClCompile Include="$(SolutionDir)Source\ParseStack.c" />
-    <ClCompile Include="$(SolutionDir)Source\ParseTree.c" />
-    <ClCompile Include="$(SolutionDir)Source\Symbol.c" />
-    <ClCompile Include="$(SolutionDir)Source\SymbolTable.c" />
-    <ClCompile Include="$(SolutionDir)Source\Type.c" />
+    <ClCompile Include="..\Source\HashMap.c" />
+    <ClCompile Include="..\Source\Main.c" />
+    <ClCompile Include="..\Source\Parser.c" />
+    <ClCompile Include="..\Source\ParseStack.c" />
+    <ClCompile Include="..\Source\ParseTree.c" />
+    <ClCompile Include="..\Source\Symbol.c" />
+    <ClCompile Include="..\Source\SymbolTable.c" />
+    <ClCompile Include="..\Source\Type.c" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="$(SolutionDir)Headers\Enums.h" />
-    <ClInclude Include="$(SolutionDir)Headers\HashMap.h" />
-    <ClInclude Include="$(SolutionDir)Headers\Memory.h" />
-    <ClInclude Include="$(SolutionDir)Headers\Parser.h" />
-    <ClInclude Include="$(SolutionDir)Headers\ParseStack.h" />
-    <ClInclude Include="$(SolutionDir)Headers\ParseTree.h" />
-    <ClInclude Include="$(SolutionDir)Headers\Symbol.h" />
-    <ClInclude Include="$(SolutionDir)Headers\SymbolTable.h" />
-    <ClInclude Include="$(SolutionDir)Headers\Type.h" />
+    <ClInclude Include="..\Headers\Enums.h" />
+    <ClInclude Include="..\Headers\HashMap.h" />
+    <ClInclude Include="..\Headers\Memory.h" />
+    <ClInclude Include="..\Headers\Parser.h" />
+    <ClInclude Include="..\Headers\ParseStack.h" />
+    <ClInclude Include="..\Headers\ParseTree.h" />
+    <ClInclude Include="..\Headers\Symbol.h" />
+    <ClInclude Include="..\Headers\SymbolTable.h" />
+    <ClInclude Include="..\Headers\Type.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
