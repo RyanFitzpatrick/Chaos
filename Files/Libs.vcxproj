@@ -20,8 +20,8 @@
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>15.0</VCProjectVersion>
-    <ProjectGuid>{C83F49F3-99EC-486F-B133-FF4B183DEDD4}</ProjectGuid>
-    <RootNamespace>Chaos</RootNamespace>
+    <ProjectGuid>{8BCEC146-5516-4E33-93B1-A17207F42B55}</ProjectGuid>
+    <RootNamespace>Libs</RootNamespace>
     <WindowsTargetPlatformVersion>10.0.16299.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -45,7 +45,7 @@
     <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
-    <ConfigurationType>Application</ConfigurationType>
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <PlatformToolset>v141</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
@@ -71,11 +71,32 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <OutDir>$(SolutionDir)Run\</OutDir>
-    <IntDir>$(SolutionDir)Clean\Main\</IntDir>
-    <TargetName>Main</TargetName>
+    <IntDir>$(SolutionDir)Clean\Libs\</IntDir>
+    <TargetName>Chaos</TargetName>
     <CustomBuildAfterTargets>Clean</CustomBuildAfterTargets>
-    <ExtensionsToDeleteOnClean>*.CppClean.log;$(ExtensionsToDeleteOnClean)</ExtensionsToDeleteOnClean>
   </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <SDLCheck>true</SDLCheck>
+      <ConformanceMode>true</ConformanceMode>
+      <AdditionalIncludeDirectories>$(SolutionDir)Headers;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+    <Link>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+    </Link>
+    <PostBuildEvent>
+      <Command>rmdir $(IntDir)Libs.tlog /s /q
+del $(IntDir)*.log</Command>
+    </PostBuildEvent>
+    <CustomBuildStep>
+      <Command>del $(IntDir)*.log</Command>
+    </CustomBuildStep>
+  </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
@@ -106,53 +127,11 @@
       <OptimizeReferences>true</OptimizeReferences>
     </Link>
   </ItemDefinitionGroup>
-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <ClCompile>
-      <WarningLevel>Level3</WarningLevel>
-      <Optimization>MaxSpeed</Optimization>
-      <FunctionLevelLinking>true</FunctionLevelLinking>
-      <IntrinsicFunctions>true</IntrinsicFunctions>
-      <SDLCheck>true</SDLCheck>
-      <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)Headers;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <TreatWarningAsError>true</TreatWarningAsError>
-    </ClCompile>
-    <Link>
-      <EnableCOMDATFolding>true</EnableCOMDATFolding>
-      <OptimizeReferences>true</OptimizeReferences>
-    </Link>
-    <BuildLog>
-      <Path>$(SolutionDir)Run\$(MSBuildProjectName).log</Path>
-    </BuildLog>
-    <PostBuildEvent>
-      <Command>rmdir $(IntDir)Main.tlog /s /q
-del $(IntDir)*.log</Command>
-    </PostBuildEvent>
-    <CustomBuildStep>
-      <Command>del $(IntDir)*.log</Command>
-    </CustomBuildStep>
-  </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="$(SolutionDir)Source\HashMap.c" />
-    <ClCompile Include="$(SolutionDir)Source\Main.c" />
-    <ClCompile Include="$(SolutionDir)Source\Parser.c" />
-    <ClCompile Include="$(SolutionDir)Source\ParseStack.c" />
-    <ClCompile Include="$(SolutionDir)Source\ParseTree.c" />
-    <ClCompile Include="$(SolutionDir)Source\Symbol.c" />
-    <ClCompile Include="$(SolutionDir)Source\SymbolTable.c" />
-    <ClCompile Include="$(SolutionDir)Source\Type.c" />
+    <ClCompile Include="..\Source\Num.c" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="$(SolutionDir)Headers\Enums.h" />
-    <ClInclude Include="$(SolutionDir)Headers\HashMap.h" />
-    <ClInclude Include="$(SolutionDir)Headers\Memory.h" />
-    <ClInclude Include="$(SolutionDir)Headers\Parser.h" />
-    <ClInclude Include="$(SolutionDir)Headers\ParseStack.h" />
-    <ClInclude Include="$(SolutionDir)Headers\ParseTree.h" />
-    <ClInclude Include="$(SolutionDir)Headers\Symbol.h" />
-    <ClInclude Include="$(SolutionDir)Headers\SymbolTable.h" />
-    <ClInclude Include="$(SolutionDir)Headers\Type.h" />
+    <ClInclude Include="..\Headers\Num.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

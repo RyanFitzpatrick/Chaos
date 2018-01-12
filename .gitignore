@@ -1,8 +1,10 @@
 .DS_STORE
 .vs
 .vs/
-Chaos.vcxproj.*
-Files/Chaos.vcxproj.*
+Libs.vcxproj.*
+Main.vcxproj.*
+Files/Libs.vcxproj.*
+Files/Main.vcxproj.*
 Run/*.log
 Run/*.iobj
 Run/*.ipdb
