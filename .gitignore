@@ -2,6 +2,7 @@
 .vs
 .vs/
 Chaos.vcxproj.*
+Files/Chaos.vcxproj.*
 Run/Chaos.log
 Run/Main.iobj
 Run/Main.ipdb
