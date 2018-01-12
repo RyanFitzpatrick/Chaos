@@ -3,8 +3,8 @@
 .vs
 .vs/
 Chaos.vcxproj.*
-Clean/Libs/
-Clean/Main/
+Clean/Libs/*
+Clean/Main/*
 Run/Main.Chaos
 Run/Main.iobj
 Run/Main.ipdb
