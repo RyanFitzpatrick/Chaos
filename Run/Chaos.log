@@ -1,0 +1,13 @@
+﻿  HashMap.c
+  Main.c
+  Num.c
+  Parser.c
+  ParseStack.c
+  ParseTree.c
+  Symbol.c
+  SymbolTable.c
+  Type.c
+  Generating code
+  Finished generating code
+  All 11 functions were compiled because no usable IPDB/IOBJ from previous compilation was found.
+  Chaos.vcxproj -> C:\Users\ryanf\Desktop\Chaos\Run\Main.exe
