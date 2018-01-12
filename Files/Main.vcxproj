@@ -126,7 +126,7 @@
       <Path>$(SolutionDir)Run\$(MSBuildProjectName).log</Path>
     </BuildLog>
     <PostBuildEvent>
-      <Command>rmdir $(IntDir)Chaos.tlog /s /q
+      <Command>rmdir $(IntDir)Main.tlog /s /q
 del $(IntDir)Main.Build.CppClean.log</Command>
     </PostBuildEvent>
     <CustomBuildStep>
