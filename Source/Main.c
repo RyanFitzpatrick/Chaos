@@ -19,6 +19,7 @@ int main()
     }
 
     printf("Done\n");
+	getchar();
     EndMap(map);
 
     return 0;
