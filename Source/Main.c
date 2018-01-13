@@ -9,7 +9,7 @@ int main()
     HashMap * map = NULL;
     int * ptr = NULL, i;
 
-   BuildMap(map, 1024);
+    BuildMap(map, 1024);
 
     for (i = 0; i < SIZE; ++i)
     {
